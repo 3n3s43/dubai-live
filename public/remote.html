@@ -2,57 +2,81 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>TikTok Remote - Pro v8.7.7 Broadcaster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dubai Live - Kontrol Paneli</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        /* Mevcut v8.7.6 stillerine ek olarak: */
-        .vrm-controls { background: #16171d; border: 1px solid #2a2d35; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
-        .section-title { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 8px; font-weight: 800; }
-        .m-btn { flex: 1; background: #0d0d12; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; }
-        .m-btn.active { border-color: #00f2ea; color: #00f2ea; background: rgba(0, 242, 234, 0.1); }
-        .mode-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        :root { --neon: #5dd1ff; --danger: #ff4757; --bg: #0a0a0b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; touch-action: manipulation; }
+        .header { border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+        button { 
+            padding: 18px 10px; border-radius: 12px; border: 1px solid #333; background: #1a1a1c;
+            color: white; font-weight: bold; font-size: 14px; transition: 0.2s; cursor: pointer;
+        }
+        button:active { transform: scale(0.95); background: var(--neon); color: black; }
+        .gift { border-color: var(--danger); color: var(--danger); }
+        .gift:active { background: var(--danger); color: white; }
+        .seat { border-color: #7bed9f; color: #7bed9f; }
+        .seat:active { background: #7bed9f; color: black; }
+        .status { font-size: 12px; color: #888; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="vrm-controls">
-        <div class="section-title">Yayın Düzeni (Layout)</div>
-        <div class="mode-row">
-            <button id="l-grid" class="m-btn active" onclick="setLayout('grid')">4x2 IZGARA</button>
-            <button id="l-list" class="m-btn" onclick="setLayout('list')">TEKLİ LİSTE</button>
-        </div>
+    <div class="header">
+        <h2 style="margin:0; color: var(--neon);">DUBAI REMOTE</h2>
+        <div id="connectionStatus" class="status">Sunucuya bağlanılıyor...</div>
     </div>
 
-    <div class="vrm-controls">
-        <div class="section-title">Profesyonel Modlar</div>
-        <div class="mode-row">
-            <button class="m-btn" style="border-color: #ffd700;" onclick="sendVIP('lion')">🦁 MANUEL ASLAN</button>
-            <button id="btn-roll" class="m-btn active" onclick="toggleRoller()">PUAN ROLLER: AÇIK</button>
-        </div>
+    <h3 style="color: var(--danger); font-size: 16px;">🎁 ÖZEL EFEKTLER</h3>
+    <div class="grid">
+        <button class="gift" onclick="send('LION')">🦁 ASLAN ÇIKAR</button>
+        <button class="gift" onclick="send('GIFT_BOX')">🎁 HEDİYE KUTUSU</button>
+        <button class="gift" onclick="send('ZEUS')">⚡ ZEUS GÜCÜ</button>
+        <button class="gift" onclick="send('DRAGON')">🐉 EJDERHA</button>
     </div>
+
+    <h3 style="color: #7bed9f; font-size: 16px;">🪑 KOLTUK YÖNETİMİ</h3>
+    <div class="grid">
+        <button class="seat" onclick="send('SEAT_1')">Koltuk 1</button>
+        <button class="seat" onclick="send('SEAT_2')">Koltuk 2</button>
+        <button class="seat" onclick="send('SEAT_3')">Koltuk 3</button>
+        <button class="seat" onclick="send('SEAT_4')">Koltuk 4</button>
+        <button class="seat" onclick="send('SEAT_5')">Koltuk 5</button>
+        <button class="seat" onclick="send('SEAT_6')">Koltuk 6</button>
+        <button class="seat" onclick="send('SEAT_7')">Koltuk 7</button>
+        <button class="seat" onclick="send('SEAT_8')">Koltuk 8</button>
+    </div>
+
+    <button style="width:100%; margin-top:20px; border-color:#f1c40f; color:#f1c40f;" onclick="send('RESET')">♻️ TÜMÜNÜ SIFIRLA</button>
 
     <script>
-    const socket = io({ transports: ['websocket', 'polling'] });
-    let roller = true;
+        // Railway canlı linkine otomatik bağlanır
+        const socket = io('https://dubai-live-production.up.railway.app');
 
-    function setLayout(m) {
-        socket.emit('layoutChange', { mode: m });
-        document.getElementById('l-grid').classList.toggle('active', m==='grid');
-        document.getElementById('l-list').classList.toggle('active', m==='list');
-    }
+        const statusEl = document.getElementById('connectionStatus');
 
-    function sendVIP(type) {
-        socket.emit('vipEffect', { type: type });
-    }
+        socket.on('connect', () => {
+            statusEl.textContent = '● Bağlı (Railway Canlı)';
+            statusEl.style.color = '#7bed9f';
+        });
 
-    function toggleRoller() {
-        roller = !roller;
-        socket.emit('toggleRoller', { active: roller });
-        const b = document.getElementById('btn-roll');
-        b.classList.toggle('active', roller);
-        b.innerText = roller ? "PUAN ROLLER: AÇIK" : "PUAN ROLLER: KAPALI";
-    }
+        socket.on('disconnect', () => {
+            statusEl.textContent = '○ Bağlantı Kesildi!';
+            statusEl.style.color = 'var(--danger)';
+        });
 
-    // [v8.7.6'daki seat rendering ve socket dinleyicileri buraya eklenecek]
-</script>
+        function send(cmd) {
+            // Host.html dosyanın beklediği veri yapısı
+            socket.emit('remote-command', {
+                type: cmd,
+                value: true,
+                timestamp: Date.now()
+            });
+            
+            // Telefon titreşimi (varsa)
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+    </script>
 </body>
 </html>
