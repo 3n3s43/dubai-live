@@ -1,267 +1,3760 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Tiktok Live Host - Pro v8.7.0 (Professional Frame)</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <style>
-        html, body { margin: 0; padding: 0; background-color: #0b0c0f !important; font-family: 'Segoe UI', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
-        .movable { position: absolute; border: 2px solid transparent; box-sizing: border-box; }
-        .edit-active { border: 2px dashed #ff3b5c !important; cursor: move !important; z-index: 999 !important; background: rgba(255, 59, 92, 0.1) !important; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Mode 1" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/png" href="image/tiktokicon.png" />
+  <link rel="apple-touch-icon" href="image/tiktokicon.png" />
+  <link rel="manifest" href="manifest-mode1.json" />
+  <title>Mode 1 – Host</title>
+  <style>
+    @font-face {
+      font-family: "TikTok Sans";
+      src: url("TikTok_Sans/static/TikTokSans-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TikTok Sans Medium";
+      src: url("TikTok_Sans/static/TikTokSans-Medium.ttf") format("truetype");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TikTok Sans SemiBold";
+      src: url("TikTok_Sans/static/TikTokSans-SemiBold.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TikTok Sans Bold";
+      src: url("TikTok_Sans/static/TikTokSans-Bold.ttf") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TikTok Sans Condensed";
+      src: url("TikTok_Sans/static/TikTokSans_Condensed-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "TikTok Sans Expanded";
+      src: url("TikTok_Sans/static/TikTokSans_Expanded-Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    :root {
+      color-scheme: dark light;
+      --bg: #000;
+      --web-bg-image: url("image/sea.webp");
+      --muted: #8b93a6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      background-image: var(--web-bg-image);
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      color: #fff;
+      font-family: "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+    }
+    body.transparent-bg,
+    body.transparent-bg .host-layout {
+      background: transparent !important;
+    }
+    .host-layout {
+      position: relative;
+      min-height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      background-color: transparent;
+    }
+    .video-wrap,
+    .room-panel,
+    .animation-box {
+      position: absolute;
+      background: #0b0d10;
+      border: none;
+      border-radius: 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      overflow: hidden;
+      touch-action: none;
+    }
+    .firework-box {
+      background: transparent;
+      border: 1px solid transparent;
+      box-shadow: none;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .cam-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+      z-index: 0;
+    }
+    .cam-tools {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: none;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      background: rgba(15, 17, 21, 0.85);
+      border: 1px solid #232836;
+      border-radius: 10px;
+    }
+    .cam-tools.show { display: flex; }
+    .cam-tools button {
+      border: 1px solid #232836;
+      background: rgba(22, 26, 33, 0.9);
+      color: #e8ecf2;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-family: "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .cam-tools button.active {
+      border-color: #5dd1ff;
+      box-shadow: 0 6px 18px rgba(93, 209, 255, 0.2);
+    }
+    .cam-ai-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .cam-vrm-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 2;
+      pointer-events: none;
+      background: transparent;
+    }
+    .cam-seg-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .animation-box {
+      background: transparent;
+      border: 2px dashed #ff9a3c;
+      box-shadow: none;
+      overflow: visible;
+      isolation: auto;
+    }
+    .video-wrap { background: #000; }
+    .video-wrap.cam-speaking {
+      box-shadow: inset 0 0 0 2px #37d9ff, 0 0 18px rgba(55, 217, 255, 0.45);
+      border-radius: var(--speaking-border-radius, 10px);
+    }
+    .video-wrap.cam-hidden {
+      background: transparent;
+    }
+    .video-wrap.cam-hidden video,
+    .video-wrap.cam-hidden .cam-bg,
+    .video-wrap.cam-hidden .cam-seg-canvas,
+    .video-wrap.cam-hidden .cam-ai-canvas,
+    .video-wrap.cam-hidden .cam-vrm-canvas {
+      display: none !important;
+      opacity: 0 !important;
+    }
+    .room-panel {
+      padding: 0;
+      display: none;
+      background: transparent;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    .room-panel.show { display: block; }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: transparent;
+      pointer-events: none;
+      position: relative;
+      z-index: 1;
+    }
+    video.cam-ai-face {
+      filter: saturate(1.25) contrast(1.06) brightness(1.05) blur(0.4px);
+    }
+    .room-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+    }
+    .slot {
+      border: none;
+      border-radius: 0;
+      min-height: 120px;
+      background: #14171c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .slot-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .slot-bg img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 200%;
+      height: 200%;
+      object-fit: cover;
+      filter: blur(14px) saturate(1.4) brightness(0.65);
+    }
+    .slot > *:not(.slot-bg):not(.seat-pill):not(.seat-mute):not(.slot-avatar):not(.seat-lion-icon) { position: relative; z-index: 1; }
+    .slot .plus { font-size: 36px; line-height: 1; color: #b3b3b3; }
+    .slot .label { color: #b3b3b3; font-size: 14px; font-weight: 700; }
+    .resize-handle { display: none; }
+    .slot-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: transparent; border: none; box-shadow: none; }
+    .slot.occupied .slot-avatar {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .seat-pill {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      height: 20px;
+      padding: 0 6px;
+      background: rgba(45, 49, 57, 0.92);
+      border-radius: 999px;
+      font-size: 11px;
+      font-family: "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: #e8ecf2;
+      white-space: nowrap;
+      z-index: 6;
+    }
+    .seat-pill-top { top: 4px; left: 4px; padding-left: 2px; }
+    .host-pill {
+      z-index: 4;
+      min-width: 48px;
+      padding: 0 10px;
+      justify-content: center;
+      text-align: center;
+    }
+    .cam-name-pill {
+      z-index: 4;
+      min-width: 48px;
+      padding: 0 10px;
+      justify-content: center;
+      text-align: center;
+    }
+    .cam-name-pill.no-capsule {
+      background: transparent;
+    }
+    .seat-pill-bottom.cam-name-pill {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .seat-pill-bottom { bottom: 4px; left: 4px; padding-right: 2px; }
+    .seat-pill-icon { width: 16px; height: 24px; display: block; }
+    .seat-name-text { font-weight: 400; font-size: 10px; line-height: 16px; }
+    .seat-lion-icon {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      left: auto;
+      bottom: auto;
+      display: none;
+      width: 24px;
+      height: 24px;
+      opacity: 0;
+      transform: scale(1);
+      z-index: 3;
+      pointer-events: none;
+    }
+    .seat-lion-icon.seat-lion-show {
+      display: block;
+      animation: seatLionFlash 4s ease-in-out;
+    }
+    @keyframes seatLionFlash {
+      0% { opacity: 0; transform: scale(1); }
+      10% { opacity: 1; transform: scale(1); }
+      75% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1); }
+    }
+    .seat-points-wrap {
+      overflow: hidden;
+      height: 16px;
+      display: inline-block;
+      position: relative;
+      vertical-align: middle;
+    }
+    .seat-points-text {
+      display: block;
+      line-height: 16px;
+      height: 16px;
+    }
+    .seat-points-roller {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .seat-points-roller > span {
+      height: 16px;
+      line-height: 16px;
+      display: block;
+    }
+    .seat-points-roller.rolling {
+      animation: seatPointsRoll 0.45s ease-out forwards;
+    }
+    @keyframes seatPointsRoll {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+    .seat-plus-circle {
+      width: 16px;
+      height: 16px;
+    
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #464a4f;
+      color: #fff;
+      font-size: 18px;
+      line-height: 16px;
+      
+    }
+    .seat-plus-glyph {
+      display: block;
+      line-height: 1;
+      transform: translate(0.5px, -1px);
+    }
+    .seat-mute {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      width: 16px;
+      height: 22px;
+      opacity: 0.9;
+    }
+    .gift-overlay {
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+      display: none;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      isolation: auto;
+    }
+    .gift-overlay.show {
+      display: block;
+    }
+    .gift-overlay.lion-upgrade {
+      overflow: visible;
+    }
+    .gift-overlay.lion-upgrade video {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      object-fit: fill;
+    }
+    .gift-overlay.lion-upgrade canvas.gift-canvas {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+    }
+    .gift-overlay.lion-upgrade::before {
+      display: none;
+    }
+    .gift-overlay.android-lion {
+      overflow: visible;
+    }
+    .gift-overlay.android-lion video {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 200%;
+      object-fit: fill;
+    }
+    .gift-overlay.android-lion::before {
+      display: none;
+    }
+    .gift-overlay::before {
+      content: '';
+      position: absolute;
+      top: 20%;
+      left: 0;
+      right: 0;
+      height: 60%;
+      background: transparent;
+      pointer-events: none;
+      z-index: 1;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+    }
+    .gift-overlay video {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      display: block;
+      background: transparent;
+      opacity: 0;
+      -webkit-user-select: none;
+      user-select: none;
+      /* Hide native video controls so there's no download button */
+      pointer-events: none;
+      /* GPU compositing for smoother playback on mobile */
+      will-change: opacity;
+      transform: translateZ(0);
+    }
+    .gift-overlay video.playing {
+      opacity: 1;
+    }
+    .gift-overlay video.use-canvas {
+      position: absolute;
+      opacity: 0 !important;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+    .gift-overlay canvas.gift-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+    }
+    .live-firework {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 80;
+    }
+    .live-firework.show { display: flex; }
+    .live-firework-core {
+      position: relative;
+      width: min(14vw, 84px);
+      aspect-ratio: 1 / 1;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 0 16px rgba(255, 200, 0, 0.4), 0 0 28px rgba(255, 96, 96, 0.3);
+      animation: liveFireworkFlight 0.58s ease-out forwards;
+      background: rgba(12, 16, 24, 0.96);
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    .live-firework.center-hidden .live-firework-core { opacity: 0; }
+    .live-firework-avatar,
+    .live-firework-gift {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.2s ease;
+    }
+    .live-firework-gift {
+      opacity: 0;
+      object-fit: contain;
+      padding: 22%;
+    }
+    .live-firework-burst {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      object-fit: cover;
+      background: rgba(12, 16, 24, 0.98);
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 14px rgba(255, 220, 120, 0.62);
+      transform: translate(var(--fx, 0), var(--fy, 0)) scale(0);
+      animation: liveBurst 0.56s ease-out forwards;
+      animation-delay: var(--delay, 0ms);
+      opacity: 0;
+    }
+    @keyframes liveFireworkFlight {
+      0% { transform: translate(var(--origin-x, 0px), calc(var(--origin-y, 0px) + 120px)) scale(0.28); opacity: 0; }
+      25% { opacity: 1; }
+      100% { transform: translate(var(--origin-x, 0px), calc(var(--origin-y, 0px) - 14px)) scale(0.9); opacity: 1; }
+    }
+    @keyframes liveBurst {
+      0% { transform: translate(var(--origin-x, 0px), var(--origin-y, 0px)) scale(0.1); opacity: 0.95; }
+      100% { transform: translate(calc(var(--origin-x, 0px) + var(--fx, 0px)), calc(var(--origin-y, 0px) + var(--fy, 0px))) scale(1.5); opacity: 0; }
+    }
+    .sound-prompt {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 2000;
+    }
 
-        #host-root {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            transform-origin: top left;
-            transform: scale(1);
-        }
-
-        #cam-container { width: 160px; height: 420px; top: 135px; left: 15px; background: #000; z-index: 10; overflow: hidden; }
-        video#user-cam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); pointer-events: none; }
-        #cam-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
-        
-        .cam-picker {
-            position: absolute; bottom: 4px; left: 4px; padding: 2px 6px; font-size: 9px;
-            border-radius: 6px; border: 1px solid rgba(255,255,255,0.4);
-            background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; display: none; z-index: 50;
-        }
-        #cam-container.edit-active .cam-picker { display: inline-flex; align-items: center; gap: 3px; }
-
-        /* PROFESYONEL 8 KOLTUK ÇERÇEVESİ */
-        #request-container { width: 160px; height: 420px; top: 135px; left: 180px; z-index: 20; }
-        #guest-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            grid-template-rows: repeat(4, 1fr); 
-            gap: 1px; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.8); /* Çizgi rengi */
-        }
-        
-        .slot { 
-            position: relative; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: #14171c !important; /* Orijinal koyu profesyonel renk */
-            overflow: hidden; 
-        }
-
-        /* Üstten gelen hafif ışık efekti */
-        .slot::after {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 30%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.03), transparent);
-            pointer-events: none;
-        }
-
-        .avatar-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; z-index: 20; width: 100%; height: 100%; justify-content: center; }
-        .guest-avatar { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.2); object-fit: cover; z-index: 25; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .avatar-reflect { position: absolute; bottom: -8px; width: 100%; height: 50%; object-fit: cover; transform: scaleY(-1); opacity: 0.12; filter: blur(4px); z-index: 10; }
-
-        .score-pill { 
-            position: absolute; top: 4px; left: 4px; padding: 0 6px 0 2px; height: 14px; z-index: 40; 
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); border-radius: 50px;
-            display: flex; align-items: center; border: 0.5px solid rgba(255,255,255,0.1);
-        }
-
-        .lion-holder { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; z-index: 45; }
-        .lion-icon-small { width: 20px; height: 20px; background: url('kucuk.png') no-repeat center; background-size: contain; }
-
-        .flash-active { display: flex !important; animation: pureLionFlash 1.5s ease-in-out infinite alternate; }
-        @keyframes pureLionFlash { from { opacity: 0.2; transform: scale(0.8); } to { opacity: 1; transform: scale(1.1); } }
-
-        .star-box { width: 14px; height: 14px; background: url('star.png') no-repeat center; background-size: contain; margin-left: -2px; }
-        .score-counter-wrapper { height: 14px; overflow: hidden; display: flex; flex-direction: column; margin-left: 2px; }
-        .score-text { color: #fff; font-size: 9px; font-weight: 700; line-height: 14px; }
-        .animate-scroll { animation: scrollUp 0.18s forwards; }
-        @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
-
-        .bottom-ui-group { position: absolute; bottom: 5px; left: 4px; right: 4px; display: flex; align-items: center; justify-content: space-between; z-index: 35; }
-        .name-capsule { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); border-radius: 50px; display: flex; align-items: center; border: 0.5px solid rgba(255,255,255,0.1); padding: 0 6px; flex-grow: 1; max-width: 60px; height: 14px; justify-content: space-between; }
-        .guest-name { color: #fff; font-size: 8px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .plus-mini { color: #ff3b5c; font-size: 9px; font-weight: 900; margin-left: 2px; }
-        .mic-box { width: 14px; height: 14px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 50%; }
-        .mic-box svg { width: 10px; height: 10px; }
-
-        #lion-overlay { position: fixed; top: 10%; left: 10%; width: 80vw; height: 80vh; z-index: 100; display: none; pointer-events: none; background: transparent; }
-        #lion-video { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; filter: brightness(1.1) contrast(1.2); }
-        
-        .empty-state { display: flex; flex-direction: column; align-items: center; opacity: 0.6; }
-        .plus-icon { color: #8b93a6; font-size: 30px; font-weight: 200; }
-        .req-text { color: #8b93a6; font-size: 9px; font-weight: 700; text-transform: uppercase; margin-top: -5px; }
-    </style>
+    /* ── Seat Style 2: single-column with same slot design ── */
+    .room-panel.style2-active {
+      border: none;
+      box-shadow: none;
+    }
+    .style2-request-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 6px 16px;
+      border: none;
+      border-radius: 0;
+      background: rgba(128,128,128,0.50);
+      color: #e8ecf2;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      flex-shrink: 0;
+    }
+    .sound-prompt.hidden { display: none; }
+    .sound-prompt button {
+      border: 1px solid #232836;
+      background: rgba(22, 26, 33, 0.95);
+      color: #e8ecf2;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-family: "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div id="host-root">
-        <div id="cam-container" class="movable">
-            <img id="cam-image" alt="">
-            <button id="cam-image-picker" class="cam-picker">RESİM SEÇ</button>
-            <input type="file" id="camImageInput" accept="image/*" style="display:none">
-        </div>
-        <div id="request-container" class="movable">
-            <div id="guest-grid">
-                <script>
-                    for(let i=0; i<8; i++) {
-                        document.write(`
-                            <div class="slot" id="slot-${i}">
-                                <div class="empty-state">
-                                    <div class="plus-icon">+</div>
-                                    <div class="req-text">Boş</div>
-                                </div>
-                            </div>
-                        `);
-                    }
-                </script>
-            </div>
-        </div>
-        <div id="lion-overlay" class="movable"><video id="lion-video" playsinline></video></div>
+  <div id="hostLayout" class="host-layout">
+    <div id="camTools" class="cam-tools" aria-hidden="true">
+      <button id="camVrmPickBtn" type="button">Choose VRM Avatar</button>
+      <button id="camVrmClearBtn" type="button">Remove VRM Avatar</button>
+      <button id="camBgBtn" type="button">Choose Cam Background Image</button>
+      <button id="camBgClearBtn" type="button">Remove Cam Background</button>
+      <button id="webBgBtn" type="button">Choose Web Background Image</button>
+      <button id="webBgClearBtn" type="button">Remove Web Background</button>
+      <input id="camBgFile" type="file" accept="image/*,.gif,.webp" hidden />
+      <input id="webBgFile" type="file" accept="image/*,.gif,.webp" hidden />
+      <input id="camVrmFile" type="file" accept=".vrm" hidden />
     </div>
+    <div id="videoWrap" class="video-wrap">
+      <div id="hostPill" class="seat-pill seat-pill-top host-pill">Host</div>
+      <div id="camNamePill" class="seat-pill seat-pill-bottom cam-name-pill no-capsule">Host</div>
+      <img id="camBg" class="cam-bg" alt="" />
+      <canvas id="camSegCanvas" class="cam-seg-canvas"></canvas>
+      <canvas id="camAiCanvas" class="cam-ai-canvas"></canvas>
+      <canvas id="camVrmCanvas" class="cam-vrm-canvas"></canvas>
+      <video id="camera" autoplay playsinline muted></video>
+      <div class="resize-handle" data-target="cam"></div>
+    </div>
+    <div id="roomPanel" class="room-panel">
+      <div id="roomGrid" class="room-grid"></div>
+      <div class="resize-handle" data-target="room"></div>
+    </div>
+    <div id="animationBox" class="animation-box">
+      <div id="giftOverlay" class="gift-overlay">
+        <video id="giftVideo" playsinline webkit-playsinline preload="auto" x-webkit-airplay="deny"
+               controlsList="nodownload nofullscreen noremoteplayback"
+               disablePictureInPicture disableRemotePlayback
+               oncontextmenu="return false"></video>
+      </div>
+      <div class="resize-handle" data-target="animation"></div>
+    </div>
+    <div id="fireworkBox" class="animation-box firework-box">
+      <div id="liveFirework" class="live-firework" aria-hidden="true"></div>
+      <div class="resize-handle" data-target="firework"></div>
+    </div>
+  </div>
+  <div id="soundPrompt" class="sound-prompt hidden" aria-hidden="true">
+    <button id="soundPromptBtn" type="button">Tap to enable sound</button>
+  </div>
 
-<script>
-    const socket = io({ transports: ['websocket', 'polling'] });
-    let seats = Array(8).fill(null);
-    let localScores = Array(8).fill(0);
-    let seatIntervals = Array(8).fill(null);
-    let camMode = 'camera';
-
-    function formatScore(num) {
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return num;
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/selfie_segmentation.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+      }
     }
+  </script>
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js";
+    import { VRMUtils, VRMLoaderPlugin } from "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.6/lib/three-vrm.module.js";
 
-    function renderSeatCounter(index, animate = true) {
-        const wrapper = $(`#counter-${index}`);
-        if (!wrapper.length) return;
-        const newScoreFormatted = formatScore(localScores[index] || 0);
-        wrapper.find('.next-val').text(newScoreFormatted);
-        if (!animate) {
-            wrapper.find('.current-val').text(newScoreFormatted);
-            return;
-        }
-        wrapper.removeClass('animate-scroll');
-        void wrapper[0]?.offsetWidth;
-        wrapper.addClass('animate-scroll');
-        setTimeout(() => {
-            wrapper.removeClass('animate-scroll');
-            wrapper.find('.current-val').text(newScoreFormatted);
-        }, 180);
-    }
+    const canvas = document.getElementById("camVrmCanvas");
+    const video = document.getElementById("camera");
+    if (!canvas || !video) {
+      window.VRMController = { enable: () => {}, resize: () => {}, load: () => {}, loadFile: () => {}, setPoseStrong: () => {}, setPoseAngle: () => {} };
+    } else {
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+      const maxPixelRatio = 1.25;
+      renderer.setPixelRatio(Math.min(maxPixelRatio, window.devicePixelRatio || 1));
+      renderer.setClearColor(0x000000, 0);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      camera.position.set(0, 1.4, 2.2);
 
-    function startSeatCounter(index) {
-        if (seatIntervals[index]) clearInterval(seatIntervals[index]);
-        localScores[index] = Math.floor(285 + Math.random() * 215);
-        renderSeatCounter(index, false);
-        let elapsed = 0;
-        seatIntervals[index] = setInterval(() => {
-            localScores[index] += 1;
-            renderSeatCounter(index, true);
-            if (++elapsed >= 60) { clearInterval(seatIntervals[index]); seatIntervals[index] = null; }
-        }, 1000);
-    }
+      const light = new THREE.DirectionalLight(0xffffff, 1.2);
+      light.position.set(1, 2, 3);
+      scene.add(light);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-    function updateUI() {
-        seats.forEach((seat, i) => {
-            const slot = $(`#slot-${i}`);
-            if (seat && (seat.username || seat.nickname)) {
-                if (slot.find('.guest-name').text() !== seat.username) {
-                    slot.html(`
-                        <div class="score-pill">
-                            <div class="star-box"></div>
-                            <div class="score-counter-wrapper" id="counter-${i}">
-                                <span class="score-text current-val">${formatScore(seat.score || 0)}</span>
-                                <span class="score-text next-val"></span>
-                            </div>
-                        </div>
-                        <div class="lion-holder" id="lion-holder-${i}"><div class="lion-icon-small"></div></div>
-                        <div class="avatar-wrapper">
-                            <img src="${seat.avatar}" class="guest-avatar">
-                            <img src="${seat.avatar}" class="avatar-reflect">
-                        </div>
-                        <div class="bottom-ui-group">
-                            <div class="name-capsule">
-                                <span class="guest-name">${seat.username}</span>
-                                <span class="plus-mini">+</span>
-                            </div>
-                            <div class="mic-box">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="white"/><path d="M19 10v1a7 7 0 0 1-14 0v-1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-                            </div>
-                        </div>
-                    `);
-                    startSeatCounter(i);
-                }
+      const loader = new GLTFLoader();
+      loader.register((parser) => new VRMLoaderPlugin(parser));
+      let currentVrm = null;
+      let currentModel = null;
+      let enabled = false;
+      let vrmReady = false;
+      let poseStrongOverride = null;
+      let poseAngleOverride = null;
+
+      function resize() {
+        const w = canvas.clientWidth || 1;
+        const h = canvas.clientHeight || 1;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+
+      function setBoneRotation(vrm, boneName, x, y, z) {
+        const bone = vrm.humanoid?.getNormalizedBoneNode(boneName);
+        if (!bone) return;
+        bone.rotation.x = x;
+        bone.rotation.y = y;
+        bone.rotation.z = z;
+      }
+
+      function applyIdlePoseFromUpperZ(vrm, upperZ) {
+        const baseUpper = 1.3;
+        const strongUpper = 2.2;
+        const t = Math.max(0, Math.min(1, (upperZ - baseUpper) / (strongUpper - baseUpper)));
+        const lowerX = 0.35 + (0.9 - 0.35) * t;
+        const lowerZ = 0.05 + (0.15 - 0.05) * t;
+        const handZ = 0.05 + (0.1 - 0.05) * t;
+        setBoneRotation(vrm, "leftUpperArm", 0, 0, upperZ);
+        setBoneRotation(vrm, "rightUpperArm", 0, 0, -upperZ);
+        setBoneRotation(vrm, "leftLowerArm", lowerX, 0, lowerZ);
+        setBoneRotation(vrm, "rightLowerArm", lowerX, 0, -lowerZ);
+        setBoneRotation(vrm, "leftHand", 0, 0, handZ);
+        setBoneRotation(vrm, "rightHand", 0, 0, -handZ);
+      }
+
+      function applyIdlePose(vrm, strong = false) {
+        // Arms slightly down and relaxed (stronger for some VRoid exports)
+        const upperZ = typeof poseAngleOverride === "number" ? poseAngleOverride : (strong ? 2.2 : 1.3);
+        applyIdlePoseFromUpperZ(vrm, upperZ);
+      }
+
+      function resolvePoseStrong(vrm) {
+        if (typeof poseStrongOverride === "boolean") return poseStrongOverride;
+        const vrmName = (vrm?.meta?.name || vrm?.meta?.title || "") + "";
+        return /AvatarSample|AvatarSample_V|AvatarSample_R|VRoid/i.test(vrmName);
+      }
+
+      function applyPoseToCurrent(strong) {
+        if (currentVrm) applyIdlePose(currentVrm, strong);
+      }
+
+      function loadVrm(url, revokeUrl = false) {
+        loader.load(
+          url,
+          (gltf) => {
+            const vrm = gltf.userData.vrm;
+            if (currentVrm) scene.remove(currentVrm.scene);
+            if (currentModel) scene.remove(currentModel);
+            currentVrm = null;
+            currentModel = null;
+
+            if (vrm) {
+              VRMUtils.removeUnnecessaryVertices(gltf.scene);
+              VRMUtils.removeUnnecessaryJoints(gltf.scene);
+              currentVrm = vrm;
+              VRMUtils.rotateVRM0(vrm);
+              applyIdlePose(vrm, resolvePoseStrong(vrm));
+              const box = new THREE.Box3().setFromObject(vrm.scene);
+              const height = Math.max(0.001, box.max.y - box.min.y);
+              const scale = (1.6 * 1.5) / height;
+              vrm.scene.scale.setScalar(scale);
+              const downOffset = 0.8;
+              vrm.scene.position.y = -box.min.y * scale - downOffset;
+              currentModel = vrm.scene;
+              scene.add(vrm.scene);
             } else {
-                slot.html(`<div class="empty-state"><div class="plus-icon">+</div><div class="req-text">Boş</div></div>`);
+              // Fallback: render generic GLB (no VRM metadata)
+              const box = new THREE.Box3().setFromObject(gltf.scene);
+              const height = Math.max(0.001, box.max.y - box.min.y);
+              const scale = (1.6 * 1.5) / height;
+              gltf.scene.scale.setScalar(scale);
+              const downOffset = 0.8;
+              gltf.scene.position.y = -box.min.y * scale - downOffset;
+              currentModel = gltf.scene;
+              scene.add(gltf.scene);
+              console.warn("Loaded GLB without VRM metadata. Facial tracking is disabled.");
             }
+
+            vrmReady = true;
+            if (enabled && video) video.style.opacity = "0";
+            if (revokeUrl) URL.revokeObjectURL(url);
+          },
+          undefined,
+          (err) => {
+            console.error("Failed to load VRM:", err);
+            vrmReady = false;
+            if (revokeUrl) URL.revokeObjectURL(url);
+          }
+        );
+      }
+
+      // Load the provided VRM
+      loadVrm("vrm/vrm2.vrm");
+
+      // Face tracking (head rotation)
+      let headYaw = 0;
+      let headPitch = 0;
+      let headRoll = 0;
+      let mouthOpen = 0;
+      let blinkLeft = 0;
+      let blinkRight = 0;
+      let smile = 0;
+      let faceMesh = null;
+
+      function clamp01(val) {
+        return Math.max(0, Math.min(1, val));
+      }
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function dist(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        return Math.hypot(dx, dy);
+      }
+
+      function updateHeadFromLandmarks(landmarks) {
+        if (!landmarks || !landmarks.length) return;
+        const leftEye = landmarks[33];
+        const rightEye = landmarks[263];
+        const nose = landmarks[1];
+        const eyeMidX = (leftEye.x + rightEye.x) * 0.5;
+        const eyeMidY = (leftEye.y + rightEye.y) * 0.5;
+        headYaw = (nose.x - eyeMidX) * -3.0;
+        headPitch = (nose.y - eyeMidY) * 2.5;
+        headRoll = Math.atan2(rightEye.y - leftEye.y, rightEye.x - leftEye.x) * -1.0;
+
+        // Mouth open (inner lips)
+        const mouthTop = landmarks[13];
+        const mouthBottom = landmarks[14];
+        const mouthLeft = landmarks[61];
+        const mouthRight = landmarks[291];
+        const mouthOpenRaw = dist(mouthTop, mouthBottom) / Math.max(0.001, dist(mouthLeft, mouthRight));
+        const mouthOpenTarget = clamp01((mouthOpenRaw - 0.02) * 8.0);
+
+        // Smile (mouth width vs height)
+        const smileRaw = dist(mouthLeft, mouthRight) / Math.max(0.001, dist(mouthTop, mouthBottom));
+        const smileTarget = clamp01((smileRaw - 2.0) * 0.5);
+
+        // Eye blink
+        const leftEyeTop = landmarks[159];
+        const leftEyeBottom = landmarks[145];
+        const leftEyeOuter = landmarks[33];
+        const leftEyeInner = landmarks[133];
+        const rightEyeTop = landmarks[386];
+        const rightEyeBottom = landmarks[374];
+        const rightEyeOuter = landmarks[362];
+        const rightEyeInner = landmarks[263];
+
+        const leftEyeOpen = dist(leftEyeTop, leftEyeBottom) / Math.max(0.001, dist(leftEyeOuter, leftEyeInner));
+        const rightEyeOpen = dist(rightEyeTop, rightEyeBottom) / Math.max(0.001, dist(rightEyeOuter, rightEyeInner));
+        const leftBlinkTarget = clamp01(1.0 - (leftEyeOpen - 0.15) * 6.0);
+        const rightBlinkTarget = clamp01(1.0 - (rightEyeOpen - 0.15) * 6.0);
+
+        // Smooth values
+        mouthOpen = lerp(mouthOpen, mouthOpenTarget, 0.35);
+        smile = lerp(smile, smileTarget, 0.25);
+        blinkLeft = lerp(blinkLeft, leftBlinkTarget, 0.5);
+        blinkRight = lerp(blinkRight, rightBlinkTarget, 0.5);
+      }
+
+      function initFaceMesh() {
+        if (faceMesh || typeof FaceMesh === "undefined") return;
+        faceMesh = new FaceMesh({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`,
         });
-    }
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: false,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5,
+        });
+        faceMesh.onResults((results) => {
+          if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+            updateHeadFromLandmarks(results.multiFaceLandmarks[0]);
+          }
+        });
+      }
 
-    // Socket ve Event Dinleyicileri (v8.7.0 mantığı)
-    socket.on('giftReceived', d => { 
-        if(seats[d.seatIndex]){ 
-            seats[d.seatIndex].score = (seats[d.seatIndex].score || 0) + parseInt(d.points);
-            localScores[d.seatIndex] += parseInt(d.points);
-            renderSeatCounter(d.seatIndex, true);
-            if(parseInt(d.points) >= 29999) triggerEffect('lion', d.seatIndex);
-        } 
-    });
-
-    function triggerEffect(type, index) {
-        if(index !== undefined) {
-            const holder = $(`#lion-holder-${index}`);
-            holder.addClass('flash-active');
-            setTimeout(() => holder.removeClass('flash-active'), 5000);
+      async function faceLoop() {
+        if (!enabled || !faceMesh) return;
+        if (video.readyState >= 2) {
+          try { await faceMesh.send({ image: video }); } catch (e) { /* ignore */ }
         }
-        const v = document.getElementById('lion-video');
-        v.src = type + '.webm';
-        $('#lion-overlay').fadeIn(200);
-        v.play();
-        v.onended = () => $('#lion-overlay').fadeOut(400);
+        requestAnimationFrame(faceLoop);
+      }
+
+      let lastRenderTime = 0;
+      const targetFrameMs = 33;
+      function render() {
+        requestAnimationFrame(render);
+        const now = performance.now();
+        if (now - lastRenderTime < targetFrameMs) return;
+        lastRenderTime = now;
+        if (!enabled || !currentModel) return;
+        if (currentVrm) {
+          const head = currentVrm.humanoid?.getNormalizedBoneNode("head");
+          if (head) {
+            head.rotation.y = headYaw;
+            head.rotation.x = headPitch;
+            head.rotation.z = headRoll;
+          }
+          const expr = currentVrm.expressionManager;
+          if (expr) {
+            expr.setValue("aa", mouthOpen);
+            expr.setValue("blinkLeft", blinkLeft);
+            expr.setValue("blinkRight", blinkRight);
+            expr.setValue("happy", smile);
+          }
+          currentVrm.update(1 / 60);
+        }
+        renderer.render(scene, camera);
+      }
+
+      render();
+
+      window.VRMController = {
+        enable(next) {
+          enabled = !!next;
+          canvas.style.display = enabled ? "block" : "none";
+          if (video) video.style.opacity = enabled && vrmReady ? "0" : "1";
+          if (enabled) {
+            initFaceMesh();
+            resize();
+            faceLoop();
+          }
+        },
+        load(url) {
+          if (!url) return;
+          loadVrm(url, false);
+        },
+        loadFile(file) {
+          if (!file) return;
+          const url = URL.createObjectURL(file);
+          loadVrm(url, true);
+        },
+        setPoseStrong(next) {
+          poseAngleOverride = null;
+          poseStrongOverride = typeof next === "boolean" ? next : null;
+          applyPoseToCurrent(resolvePoseStrong(currentVrm));
+        },
+        setPoseAngle(next) {
+          const asNumber = Number(next);
+          if (!Number.isFinite(asNumber)) {
+            poseAngleOverride = null;
+          } else {
+            poseAngleOverride = (asNumber * Math.PI) / 180;
+          }
+          applyPoseToCurrent(resolvePoseStrong(currentVrm));
+        },
+        resize,
+      };
+
+      // Default VRM enabled
+      window.VRMController.enable(true);
+
+      window.addEventListener("resize", resize);
+      resize();
+    }
+  </script>
+
+  <script src="offline-guard.js"></script>
+  <script>
+    /* ── Single-instance guard: only one Mode 1 tab allowed ── */
+    (function() {
+      const CHANNEL_NAME = 'mode1-single-instance';
+      const instanceId = Date.now() + '-' + Math.random().toString(36).slice(2);
+      const singleCh = new BroadcastChannel(CHANNEL_NAME);
+
+      // Tell any existing Mode 1 tab to close
+      singleCh.postMessage({ type: 'takeover', id: instanceId });
+
+      singleCh.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'takeover' && e.data.id !== instanceId) {
+          // A newer Mode 1 tab opened – close this one
+          singleCh.close();
+          if (window.AppOfflineGuard) {
+            window.AppOfflineGuard.navigate('portal.html', { replace: true });
+          } else {
+            window.location.replace('portal.html');
+          }
+        }
+      });
+    })();
+
+    let ws = null;
+    let wsRoomId = null;
+    let layoutKey = "default";
+    let camBgKey = "default:cam-bg";
+    let camBgLoadedFromServer = false;
+    const authPollMs = 15000;
+    let authPollTimer = null;
+    let authRedirecting = false;
+
+    function redirectToPortal() {
+      if (authRedirecting) return;
+      authRedirecting = true;
+      if (authPollTimer) {
+        clearInterval(authPollTimer);
+        authPollTimer = null;
+      }
+      try {
+        if (ws) ws.close();
+      } catch (err) {
+        // ignore
+      }
+      if (window.AppOfflineGuard) {
+        window.AppOfflineGuard.navigate('portal.html', { replace: true });
+        return;
+      }
+      window.location.replace('portal.html');
     }
 
-    socket.on('fullSync', d => { if(d){ seats=d.seats; updateUI(); } });
-    socket.on('seatUpdate', d => { seats[d.seatIndex]=d.userData; updateUI(); });
-    socket.on('seatClear', d => { seats[d.seatIndex]=null; updateUI(); });
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/auth/status', { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok || !data.authenticated) {
+          redirectToPortal();
+          return null;
+        }
+        return data;
+      } catch (err) {
+        if (window.AppOfflineGuard) {
+          window.AppOfflineGuard.handleError(err, 'Please reconnect to Wi-Fi or mobile data.');
+        }
+        return null;
+      }
+    }
 
-    $(document).ready(() => {
-        // Kamera Başlatma
-        navigator.mediaDevices.getUserMedia({video:true}).then(s => {
-            const v = document.createElement('video'); 
-            v.id="user-cam"; v.srcObject=s; v.autoplay=true; v.playsInline=true;
-            document.getElementById('cam-container').appendChild(v);
-        });
+    function startAuthPolling() {
+      if (authPollTimer) clearInterval(authPollTimer);
+      authPollTimer = setInterval(() => {
+        checkAuthStatus();
+      }, authPollMs);
+    }
 
-        // Tasarım Modu (Draggable/Resizable)
-        $('.movable').draggable({ 
-            stop: function() { 
-                localStorage.setItem('pos_' + this.id, JSON.stringify({top: $(this).css('top'), left: $(this).css('left'), width: $(this).css('width'), height: $(this).css('height')}));
-            } 
-        }).resizable();
-        
-        // Kayıtlı pozisyonları yükle
-        $('.movable').each(function() {
-            const saved = localStorage.getItem('pos_' + this.id);
-            if(saved) $(this).css(JSON.parse(saved));
+    function getDisplayNameStorageKey(username) {
+      return `tiktok-display-name:${String(username || 'default').toLowerCase()}`;
+    }
+
+    function getStoredDisplayName(username) {
+      try {
+        const value = localStorage.getItem(getDisplayNameStorageKey(username));
+        return (value || '').trim() || 'Host';
+      } catch (err) {
+        return 'Host';
+      }
+    }
+
+    function getWsUrl(roomId) {
+      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      return `${proto}://${window.location.host}/ws?room=${encodeURIComponent(roomId)}`;
+    }
+
+    function connectWs(roomId) {
+      if (!roomId) return;
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+      ws = new WebSocket(getWsUrl(roomId));
+      ws.addEventListener('message', (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleIncoming(msg);
+        } catch (err) {
+          // ignore
+        }
+      });
+      ws.addEventListener('close', () => {
+        setTimeout(() => {
+          if (!authRedirecting) connectWs(roomId);
+        }, 2000);
+      });
+    }
+
+    function sendWs(message) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(message));
+      }
+    }
+
+    async function requireLogin() {
+      try {
+        const data = await checkAuthStatus();
+        if (!data) return;
+        wsRoomId = data.user?.username || null;
+        layoutKey = wsRoomId || "default";
+        camBgKey = `${layoutKey}:cam-bg`;
+        const camNamePill = document.getElementById("camNamePill");
+        if (camNamePill) {
+          camNamePill.textContent = getStoredDisplayName(wsRoomId);
+        }
+        connectWs(wsRoomId);
+        // Reload layout for this user after login
+        loadLayoutFromServer().then((loaded) => {
+          if (loaded) {
+            applyRoomStyle();
+            updateRoomUI(roomOpen);
+          }
         });
-        
-        $('.movable').draggable("disable").resizable("disable");
+        // Reload camera background for this user after login
+        loadCamBgFromServer().then((bg) => {
+          camBgLoadedFromServer = true;
+          if (bg) setCamBackground(bg);
+        });
+        // Now that session is confirmed, download premium assets
+        downloadLionUpgrade();
+        preloadGiftAssets();
+        startAuthPolling();
+      } catch (err) {
+        redirectToPortal();
+      }
+    }
+    requireLogin();
+
+    const channelName = "tiktok-room-control";
+    const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(channelName) : null;
+    const fallbackKey = "tiktok-room-control-message";
+      const seatsStoreKey = "tiktok-room-seats-v2";
+      const seatCount = 8;
+
+    const qs = new URLSearchParams(location.search);
+    const preferredMode = qs.get("mode");
+
+    const hostLayout = document.getElementById("hostLayout");
+    const roomPanel = document.getElementById("roomPanel");
+    const roomGrid = document.getElementById("roomGrid");
+    const videoWrap = document.getElementById("videoWrap");
+    const videoEl = document.getElementById("camera");
+    const camBgEl = document.getElementById("camBg");
+    const camSegCanvas = document.getElementById("camSegCanvas");
+    const camSegCtx = camSegCanvas ? camSegCanvas.getContext("2d") : null;
+    const camAiCanvas = document.getElementById("camAiCanvas");
+    const camAiCtx = camAiCanvas ? camAiCanvas.getContext("2d") : null;
+    const camVrmCanvas = document.getElementById("camVrmCanvas");
+    const camToolsEl = document.getElementById("camTools");
+    const camAiFaceBtn = document.getElementById("camAiFaceBtn");
+    const camSegBtn = document.getElementById("camSegBtn");
+    const camVrmPickBtn = document.getElementById("camVrmPickBtn");
+    const camVrmClearBtn = document.getElementById("camVrmClearBtn");
+    const camBgBtn = document.getElementById("camBgBtn");
+    const camBgClearBtn = document.getElementById("camBgClearBtn");
+    const camBgFile = document.getElementById("camBgFile");
+    const webBgBtn = document.getElementById("webBgBtn");
+    const webBgClearBtn = document.getElementById("webBgClearBtn");
+    const webBgFile = document.getElementById("webBgFile");
+    const camVrmFile = document.getElementById("camVrmFile");
+    const animationBox = document.getElementById("animationBox");
+    const fireworkBox = document.getElementById("fireworkBox");
+    const giftOverlay = document.getElementById("giftOverlay");
+    const liveFirework = document.getElementById("liveFirework");
+    let giftVideo = document.getElementById("giftVideo");
+    const soundPrompt = document.getElementById("soundPrompt");
+    const soundPromptBtn = document.getElementById("soundPromptBtn");
+
+    if (animationBox) animationBox.style.borderStyle = "none";
+    if (fireworkBox) {
+      fireworkBox.style.borderStyle = "none";
+      fireworkBox.style.pointerEvents = "none";
+    }
+
+    let roomOpen = true;
+    let seatStyleMode = 2;
+    const seatStyleModeKey = "tiktok-seat-style-mode";
+    try { const _ssm = Number(localStorage.getItem(seatStyleModeKey)); if (_ssm === 1 || _ssm === 2) seatStyleMode = _ssm; } catch(e) {}
+    let stream = null;
+    let currentFacingMode = "user";
+    let camToolsVisible = false;
+    let webBgToolsVisible = false;
+    let camVrmEnabled = true;
+    let camSegEnabled = false;
+    let camAiEnabled = false;
+    let editMoveEnabled = false;
+    let camVisible = true;
+    let camAiAvatarUrl = "";
+    let camAiAvatarReady = false;
+    const camAiAvatarImage = new Image();
+    let camAiLoopId = null;
+    let camSegLoopId = null;
+    let faceMesh = null;
+    let selfieSegmentation = null;
+    let micStream = null;
+    let micCtx = null;
+    let micAnalyser = null;
+    let micSource = null;
+    let micData = null;
+    let micRaf = null;
+    let micActive = false;
+    let speakingBorderVisible = true;
+    let liveFireworkTimer = null;
+    const liveFireworkTiming = {
+      flightMs: 900,
+      burstMs: 820,
+      firstBurstDelayMs: 950,
+      waveGapMs: 420,
+      cleanupDelayMs: 3400,
+    };
+    const liveFireworkQueue = [];
+    let liveFireworkActive = false;
+    let liveFireworkWindowStart = 0;
+    let liveFireworkAcceptedInWindow = 0;
+    const liveFireworkMaxPerSecond = 3;
+    const liveFireworkMaxQueue = 4;
+    let lionUpgradeBlobUrl = null;
+    const LION_UPG_DB  = 'lionUpgradeCache';
+    const LION_UPG_KEY = 'lionupgrade_webm_v6'; // bumped: now fetched from protected endpoint
+    const LION_UPG_URL = '/api/protected-media/lion-upgrade.webm';
+
+    async function fetchProtected(fileKey) {
+      return fetch(fileKey, { credentials: 'include' });
+    }
+    const isIOSDeviceGlobal = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isIPhoneDevice = /iPhone|iPod/.test(navigator.userAgent);
+    const lionDlChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('lion-upgrade-dl') : null;
+
+    function openLionDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(LION_UPG_DB, 1);
+        req.onupgradeneeded = () => { req.result.createObjectStore('blobs'); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function getLionBlob(db) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('blobs', 'readonly');
+        const r = tx.objectStore('blobs').get(LION_UPG_KEY);
+        r.onsuccess = () => resolve(r.result || null);
+        r.onerror = () => reject(r.error);
+      });
+    }
+    function saveLionBlob(db, blob) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('blobs', 'readwrite');
+        tx.objectStore('blobs').put(blob, LION_UPG_KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function downloadLionUpgrade() {
+      if (isIPhoneDevice) return;
+      try {
+        const db = await openLionDB();
+        const cached = await getLionBlob(db);
+        if (cached) {
+          lionUpgradeBlobUrl = URL.createObjectURL(cached);
+          console.log('Lion upgrade loaded from cache');
+          if (lionDlChannel) lionDlChannel.postMessage({ type: 'lion-dl', status: 'done', pct: 100 });
+          return;
+        }
+        // Broadcast: starting
+        if (lionDlChannel) lionDlChannel.postMessage({ type: 'lion-dl', status: 'progress', pct: 0 });
+        const resp = await fetchProtected(LION_UPG_URL);
+        if (!resp.ok) throw new Error('fetch failed ' + resp.status);
+        const total = parseInt(resp.headers.get('Content-Length') || '0', 10);
+        const reader = resp.body.getReader();
+        const chunks = [];
+        let loaded = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          loaded += value.length;
+          if (total > 0) {
+            const p = Math.min(99, Math.round(loaded / total * 100));
+            if (lionDlChannel) lionDlChannel.postMessage({ type: 'lion-dl', status: 'progress', pct: p });
+          }
+        }
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        await saveLionBlob(db, blob);
+        lionUpgradeBlobUrl = URL.createObjectURL(blob);
+        console.log('Lion upgrade downloaded & cached');
+        if (lionDlChannel) lionDlChannel.postMessage({ type: 'lion-dl', status: 'done', pct: 100 });
+      } catch (err) {
+        console.warn('Lion upgrade download failed:', err);
+        if (lionDlChannel) lionDlChannel.postMessage({ type: 'lion-dl', status: 'error' });
+      }
+    }
+    // ── Anti-copy / anti-download protections ──────────────────────────
+    // Block right-click on every video element (prevents "Save video as…")
+    document.addEventListener('contextmenu', (e) => {
+      if (e.target.tagName === 'VIDEO' || e.target.closest('#giftOverlay')) {
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+
+    // Block keyboard shortcuts that can save the page or open DevTools network tab
+    document.addEventListener('keydown', (e) => {
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (
+        (ctrl && e.key === 's') ||   // Save page
+        (ctrl && e.key === 'u') ||   // View source
+        (ctrl && e.shiftKey && e.key === 'i') || // DevTools
+        (ctrl && e.shiftKey && e.key === 'j') || // Console
+        e.key === 'F12'
+      ) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+    }, true);
+
+    // downloadLionUpgrade is called after requireLogin succeeds
+    const styleStoreKey = "tiktok-room-style-latest";
+    const styleStoreVersion = 2;
+    const camBgStoreKey = "tiktok-room-cam-bg";
+    const webBgStoreKey = "tiktok-room-web-bg";
+    const defaultWebBgUrl = "image/sea.webp";
+    const camFacingStoreKey = "tiktok-room-cam-facing";
+    let _layoutSaveTimer = null;
+
+    const editLayerEls = [videoWrap, roomPanel, animationBox, fireworkBox].filter(Boolean);
+
+    function resetEditZOrder() {
+      editLayerEls.forEach((el) => {
+        el.style.zIndex = "";
+      });
+      if (!editMoveEnabled && animationBox) {
+        animationBox.style.zIndex = "30";
+      }
+      if (!editMoveEnabled && fireworkBox) {
+        fireworkBox.style.zIndex = "35";
+      }
+    }
+
+    function applyEditZOrder(activeEl) {
+      if (!editMoveEnabled) return;
+      if (animationBox) animationBox.style.zIndex = "25";
+      if (fireworkBox) fireworkBox.style.zIndex = "26";
+      if (seatStyleMode === 2) {
+        /* Style 2: room panel always in front of cam */
+        if (videoWrap) videoWrap.style.zIndex = "15";
+        if (roomPanel) roomPanel.style.zIndex = "20";
+        if (activeEl && activeEl !== videoWrap) activeEl.style.zIndex = "40";
+        return;
+      } else {
+        if (roomPanel) roomPanel.style.zIndex = "15";
+        if (videoWrap) videoWrap.style.zIndex = "20";
+      }
+      if (activeEl) activeEl.style.zIndex = "40";
+    }
+
+    editLayerEls.forEach((el) => {
+      el.addEventListener("pointerdown", () => {
+        if (!editMoveEnabled) return;
+        applyEditZOrder(el);
+      }, { capture: true });
     });
 
-    socket.on('toggleEdit', d => {
-        const els = $('.movable');
-        if(d.active) {
-            els.addClass("edit-active").draggable("enable").resizable("enable");
-            $('#lion-overlay').show().css('pointer-events', 'auto');
+    /* ---- Server-backed layout persistence ---- */
+    async function saveLayoutToServer() {
+      try {
+        const resp = await fetch('/api/layout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: layoutKey, style: { ...roomStyle, _v: styleStoreVersion } })
+        });
+        const data = await resp.json();
+        if (data.ok) console.log('Layout saved to server');
+      } catch (err) { console.warn('Layout save to server failed:', err); }
+    }
+
+    async function saveCamBgToServer(dataUrl) {
+      try {
+        await fetch('/api/layout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: camBgKey, style: { dataUrl: dataUrl || "" } })
+        });
+      } catch (err) { /* ignore */ }
+    }
+
+    async function loadCamBgFromServer() {
+      try {
+        const resp = await fetch(`/api/layout?key=${encodeURIComponent(camBgKey)}`);
+        const data = await resp.json();
+        if (data.ok && data.style && typeof data.style === 'object') {
+          return data.style.dataUrl || "";
+        }
+      } catch (err) { /* ignore */ }
+      return "";
+    }
+
+    async function loadLayoutFromServer() {
+      try {
+        const resp = await fetch(`/api/layout?key=${encodeURIComponent(layoutKey)}`);
+        const data = await resp.json();
+        if (data.ok && data.style && typeof data.style === 'object') {
+          const { _v, ...rest } = data.style;
+          roomStyle = { ...roomStyle, ...rest };
+          console.log('Layout loaded from server');
+          return true;
+        }
+      } catch (err) { console.warn('Layout load from server failed:', err); }
+      return false;
+    }
+
+    function debounceSaveLayout() {
+      if (_layoutSaveTimer) clearTimeout(_layoutSaveTimer);
+      _layoutSaveTimer = setTimeout(() => { saveLayoutToServer(); }, 1500);
+    }
+      let seats = Array.from({ length: seatCount }, () => null);
+      let seatColors = Array.from({ length: seatCount }, () => null);
+     let roomStyle = {
+      slotHeight: 101,
+      colWidth: 0,
+      gap: 5,
+      bg1: "#14171c",
+      bg2: "#1f2430",
+      blend: 0.5,
+      bgOpacityPercent: 50,
+      plusSize: 36,
+      labelSize: 14,
+      requestTextStyle: "regular",
+        pointsFormat: "compact",
+        camWidth: 201,
+        camHeight: 347,
+      camRadius: 10,
+      speakingBorderRadius: 10,
+      camOffsetX: 0,
+        camOffsetY: 156,
+      closedCamWidth: 430,
+      closedCamHeight: 615,
+      closedCamOffsetX: 0,
+      closedCamOffsetY: 165,
+      roomWidth: 215,
+      roomHeight: 423,
+      roomRadius: 10,
+        roomOffsetX: 246,
+        roomOffsetY: 188,
+        roomScale1: 83,
+      roomOffsetX2: 326,
+      roomOffsetY2: 639,
+      roomWidth2: 216,
+      roomScale2: 89,
+      roomRadius2: 10,
+      requestBoxRadius: 10,
+        animationWidth: 422,
+        animationHeight: 421,
+        animationOffsetX: -29,
+        animationOffsetY: 458,
+      fireworkWidth: 260,
+      fireworkHeight: 260,
+      fireworkOffsetX: 80,
+      fireworkOffsetY: 420,
+      animationAudioPercent: 100,
+    };
+
+    const giftLibrary = {
+      lion: { id: "lion", sources: ["/api/protected-media/lion-anim.mp4", "/api/protected-media/lion-anim.webm"], sound: "/api/protected-media/lion-upgrade.webm" },
+      leonandlion: { id: "leonandlion", sources: ["/api/protected-media/leon-lion.webm"], sound: "/api/protected-media/leon-lion.webm" },
+      zeus: { id: "zeus", sources: ["/api/protected-media/zeus.webm"], sound: "/api/protected-media/zeus.webm" },
+      dragon: { id: "dragon", sources: ["/api/protected-media/dragon.webm"], sound: "/api/protected-media/dragon.webm" },
+      pegasus: { id: "pegasus", sources: ["/api/protected-media/pegasus.mp4"], sound: "image/pegasus.mp3" },
+      thunderfalcon: { id: "thunderfalcon", sources: ["/api/protected-media/thunderfalcon.mp4"], sound: "image/thunderfalcon.mp3" },
+      tiktokuniverse: { id: "tiktokuniverse", sources: ["/api/protected-media/tiktokuniverse.webm"], sound: "/api/protected-media/tiktokuniverse.webm" },
+    };
+    const autoGiftIconLibrary = {
+      rose1coin: { id: "rose1coin", icon: "autogift/rose1coin.webp", points: 1 },
+      gg1coin: { id: "gg1coin", icon: "autogift/gg1coin.webp", points: 1 },
+      flameheart1coin: { id: "flameheart1coin", icon: "autogift/flameheart1coin.webp", points: 1 },
+      miniheart5coin: { id: "miniheart5coin", icon: "autogift/miniheart5coin.webp", points: 5 },
+      rosa10coin: { id: "rosa10coin", icon: "autogift/rosa10coin.webp", points: 10 },
+      doughnut30coin: { id: "doughnut30coin", icon: "autogift/doughnut30coin.webp", points: 30 },
+      cap99coin: { id: "cap99coin", icon: "autogift/cap99coin.webp", points: 99 },
+      glass199coin: { id: "glass199coin", icon: "autogift/glass199coin.webp", points: 199 },
+    };
+    let autoGiftConfig = {
+      enabled: false,
+      intervalMs: 1200,
+      selected: [],
+    };
+    let autoGiftTimer = null;
+    let autoGiftLastAt = 0;
+    let autoGiftSeatBag = [];
+    const giftPreloadVideos = [];
+    const giftPreloadAudios = [];
+
+    /* ── Asset pre-download cache (IndexedDB) ────────────────────────── */
+    const ASSET_CACHE_DB = 'giftAssetCache';
+    const ASSET_CACHE_VER = 1;
+    const ASSET_CACHE_STORE = 'assets';
+    const assetBlobUrls = new Map(); // originalUrl → blobURL
+
+    function openAssetCacheDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(ASSET_CACHE_DB, ASSET_CACHE_VER);
+        req.onupgradeneeded = () => { req.result.createObjectStore(ASSET_CACHE_STORE); };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function getAssetBlob(db, key) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(ASSET_CACHE_STORE, 'readonly');
+        const r = tx.objectStore(ASSET_CACHE_STORE).get(key);
+        r.onsuccess = () => resolve(r.result || null);
+        r.onerror = () => reject(r.error);
+      });
+    }
+    function saveAssetBlob(db, key, blob) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(ASSET_CACHE_STORE, 'readwrite');
+        tx.objectStore(ASSET_CACHE_STORE).put(blob, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    function resolveAssetUrl(url) {
+      return assetBlobUrls.get(url) || url;
+    }
+    async function downloadAndCacheAsset(db, url) {
+      try {
+        const cached = await getAssetBlob(db, url);
+        if (cached) {
+          assetBlobUrls.set(url, URL.createObjectURL(cached));
+          return;
+        }
+        const isProtected = url.startsWith('/api/protected-media/');
+        const resp = await fetch(url, isProtected ? { credentials: 'include' } : {});
+        if (!resp.ok) throw new Error(resp.status);
+        const blob = await resp.blob();
+        await saveAssetBlob(db, url, blob);
+        assetBlobUrls.set(url, URL.createObjectURL(blob));
+      } catch (err) {
+        console.warn('Asset cache miss:', url, err);
+      }
+    }
+
+    async function preloadGiftAssets() {
+      try {
+        const db = await openAssetCacheDB();
+        const urls = new Set();
+        // Gift video & sound URLs
+        for (const gift of Object.values(giftLibrary)) {
+          for (const s of (gift.sources || [])) urls.add(s);
+          if (gift.sound) urls.add(gift.sound);
+        }
+        // Auto-gift icon images
+        for (const g of Object.values(autoGiftIconLibrary)) {
+          if (g.icon) urls.add(g.icon);
+        }
+        // Seat gift icons (static images)
+        ['image/lionicon.png', 'image/leonandlionicon.png', 'image/zeusicon.png',
+         'image/dragonicon.png', 'image/pegasusicon.png', 'image/thunderfalconicon.png',
+         'image/tiktokuniverseicon.webp', 'image/tiktokicon.png',
+         'image/!Lion (29999).webm', 'image/pegasus.mp3', 'image/thunderfalcon.mp3'
+        ].forEach(u => urls.add(u));
+        // Skip lion upgrade — already handled by downloadLionUpgrade()
+        urls.delete(LION_UPG_URL);
+
+        // Download protected assets sequentially (auth-gated)
+        const protectedUrls = [...urls].filter(u => u.startsWith('/api/protected-media/'));
+        const staticUrls = [...urls].filter(u => !u.startsWith('/api/protected-media/'));
+        for (const u of protectedUrls) await downloadAndCacheAsset(db, u);
+        // Download static assets in parallel
+        await Promise.all(staticUrls.map(u => downloadAndCacheAsset(db, u)));
+        console.log('All gift assets pre-cached:', assetBlobUrls.size, 'items');
+      } catch (err) {
+        console.warn('Asset preload error:', err);
+      }
+    }
+    let giftHideTimer = null;
+    let giftPlaySeq = 0;
+    let giftIsPlaying = false;
+    let giftPlayStart = 0;
+    const giftQueue = [];
+    let giftCooldownTimer = null;
+
+    function clearPendingGifts() {
+      giftQueue.length = 0;
+      if (giftCooldownTimer) {
+        clearTimeout(giftCooldownTimer);
+        giftCooldownTimer = null;
+      }
+    }
+
+    function normalizeAutoGiftConfig(raw) {
+      const selectedRaw = Array.isArray(raw?.selected) ? raw.selected : [];
+      const selected = selectedRaw.filter((id) => !!autoGiftIconLibrary[id]);
+      const intervalMs = Math.min(10000, Math.max(1200, Number(raw?.intervalMs) || 1200));
+      return {
+        enabled: !!raw?.enabled,
+        intervalMs,
+        selected,
+      };
+    }
+
+    function hasVisibleSeatGiftIcon(idx = null) {
+      if (!Number.isInteger(idx)) {
+        return !!roomGrid.querySelector('.seat-lion-icon.seat-lion-show');
+      }
+      const slot = roomGrid.querySelectorAll('.slot')[idx];
+      if (!slot) return false;
+      const icon = slot.querySelector('.seat-lion-icon');
+      return !!(icon && icon.classList.contains('seat-lion-show'));
+    }
+
+    function shuffledCopy(list) {
+      const arr = [...list];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    function runAutoGiftTick() {
+      if (!autoGiftConfig.enabled) return;
+      if (!roomOpen) return;
+      if (!Array.isArray(autoGiftConfig.selected) || autoGiftConfig.selected.length === 0) return;
+      const now = Date.now();
+      if (now - autoGiftLastAt < autoGiftConfig.intervalMs) return;
+
+      const occupied = [];
+      for (let i = 0; i < seatCount; i++) {
+        if (seats[i]) occupied.push(i);
+      }
+      if (!occupied.length) return;
+
+      const eligibleOccupied = occupied.filter((idx) => !hasVisibleSeatGiftIcon(idx));
+      if (!eligibleOccupied.length) return;
+
+      // Run auto gift on all active seats (skip seats still showing icon).
+      const batch = [];
+      eligibleOccupied.forEach((seatIdx) => {
+        const randomGiftId = autoGiftConfig.selected[Math.floor(Math.random() * autoGiftConfig.selected.length)];
+        const iconGift = autoGiftIconLibrary[randomGiftId];
+        if (!iconGift) return;
+        const current = Number(seats[seatIdx].points);
+        const safeCurrent = Number.isFinite(current) ? current : 0;
+        const delta = Number(iconGift.points) || 0;
+        seats[seatIdx].points = safeCurrent + delta;
+        batch.push({ seatIdx, delta, icon: iconGift.icon });
+      });
+      if (!batch.length) return;
+
+      try { localStorage.setItem(seatsStoreKey, JSON.stringify(seats)); } catch (err) { /* ignore */ }
+      applyRoomStyle();
+      batch.forEach(({ seatIdx, delta, icon }) => {
+        if (delta > 0) showSeatPointsRise(seatIdx, delta);
+        showLionSeatIcon(seatIdx, icon);
+      });
+      autoGiftLastAt = now;
+    }
+
+    function updateAutoGiftLoop() {
+      if (autoGiftTimer) {
+        clearInterval(autoGiftTimer);
+        autoGiftTimer = null;
+      }
+      autoGiftConfig = normalizeAutoGiftConfig(autoGiftConfig);
+      autoGiftSeatBag = [];
+      if (!autoGiftConfig.enabled || autoGiftConfig.selected.length === 0) return;
+      autoGiftTimer = setInterval(runAutoGiftTick, 250);
+    }
+
+    /* ---- iOS audio unlock: persistent Audio element ---- */
+    const _giftAudioEl = new Audio();
+    _giftAudioEl.volume = 1;
+    let _audioUnlocked = false;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    function showSoundPrompt() {
+      if (!soundPrompt || !isIOSDevice || _audioUnlocked) return;
+      soundPrompt.classList.remove("hidden");
+      soundPrompt.setAttribute("aria-hidden", "false");
+    }
+
+    function getAnimationAudioVolume() {
+      const pct = Number(roomStyle?.animationAudioPercent ?? 100);
+      const safePct = Number.isFinite(pct) ? pct : 100;
+      return Math.min(1, Math.max(0, safePct / 100));
+    }
+    function hideSoundPrompt() {
+      if (!soundPrompt) return;
+      soundPrompt.classList.add("hidden");
+      soundPrompt.setAttribute("aria-hidden", "true");
+    }
+    function unlockAudio() {
+      if (_audioUnlocked) {
+        hideSoundPrompt();
+        return;
+      }
+      _giftAudioEl.muted = true;
+      _giftAudioEl.play().then(() => {
+        _giftAudioEl.pause();
+        _giftAudioEl.muted = false;
+        _giftAudioEl.currentTime = 0;
+        _audioUnlocked = true;
+        console.log("Audio unlocked for gift sounds");
+        hideSoundPrompt();
+      }).catch(() => {});
+    }
+    ["touchstart", "touchend", "click", "pointerdown"].forEach(evt => {
+      document.addEventListener(evt, unlockAudio, { once: false, passive: true });
+    });
+    if (soundPromptBtn) {
+      soundPromptBtn.addEventListener("click", () => {
+        hideSoundPrompt();
+        unlockAudio();
+      });
+    }
+    const recentMessages = new Map();
+    const recentMessageWindowMs = 3000;
+
+    function shouldProcessMessage(message) {
+      const type = message.type || "";
+      if (type === "donate-gift" || type === "play-gift") {
+        const tsNum = Number(message.ts);
+        // For gifts, process all events if timestamp is missing.
+        // When ts exists, dedupe exact duplicates (e.g. ws + broadcast channel relay).
+        if (!Number.isFinite(tsNum)) return true;
+      }
+      const key = [type, message.giftId || "", message.seatIndex ?? "", message.ts || ""].join("|");
+      const now = Date.now();
+      const last = recentMessages.get(key);
+      if (last && now - last < recentMessageWindowMs) return false;
+      recentMessages.set(key, now);
+      // Cleanup old entries
+      for (const [k, t] of recentMessages.entries()) {
+        if (now - t > recentMessageWindowMs) recentMessages.delete(k);
+      }
+      return true;
+    }
+
+    function computeSeatColor(idx, avatarUrl) {
+      if (!avatarUrl) return;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          const size = 24;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.drawImage(img, 0, 0, size, size);
+          const data = ctx.getImageData(0, 0, size, size).data;
+          let r = 0, g = 0, b = 0;
+          const pixels = size * size;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+          }
+          r = Math.round(r / pixels);
+          g = Math.round(g / pixels);
+          b = Math.round(b / pixels);
+          seatColors[idx] = `rgb(${r}, ${g}, ${b})`;
+          applyRoomStyle();
+        } catch (err) {
+          seatColors[idx] = null;
+        }
+      };
+      img.onerror = () => { seatColors[idx] = null; };
+      img.src = avatarUrl;
+    }
+
+    function showLionSeatIcon(idx, iconSrc = "image/lionicon.png") {
+      const slot = roomGrid.querySelectorAll(".slot")[idx];
+      if (!slot) return;
+      const icon = slot.querySelector(".seat-lion-icon");
+      if (!icon) return;
+      /* Clear any running animation completely before starting fresh */
+      icon.classList.remove("seat-lion-show");
+      icon.style.display = "none";
+      icon.src = resolveAssetUrl(iconSrc);
+      void icon.offsetWidth;
+      icon.style.display = "";
+      icon.classList.add("seat-lion-show");
+      /* Use a generation counter so stale listeners are no-ops */
+      const gen = (icon._lionGen = (icon._lionGen || 0) + 1);
+      icon.addEventListener("animationend", () => {
+        if (icon._lionGen !== gen) return;
+        icon.classList.remove("seat-lion-show");
+      }, { once: true });
+    }
+
+    function resetSeatGiftIcons() {
+      roomGrid.querySelectorAll(".seat-lion-icon").forEach((icon) => {
+        icon.classList.remove("seat-lion-show");
+      });
+    }
+
+    function clearSeatGiftIcon(idx) {
+      const slot = roomGrid.querySelectorAll(".slot")[idx];
+      if (!slot) return;
+      const icon = slot.querySelector(".seat-lion-icon");
+      if (!icon) return;
+      icon.classList.remove("seat-lion-show");
+    }
+
+    function showLiveGiftFirework(donorAvatar, giftIcon) {
+      if (!liveFirework) return;
+      const avatarSrc = donorAvatar || resolveAssetUrl("image/tiktokicon.png");
+      const giftSrc = giftIcon ? resolveAssetUrl(giftIcon) : resolveAssetUrl("image/tiktokicon.png");
+      const timing = liveFireworkTiming;
+      const originX = Math.round((Math.random() - 0.5) * 180);
+      const originY = Math.round((Math.random() - 0.5) * 110);
+      liveFirework.classList.remove("show", "center-hidden");
+      liveFirework.innerHTML = "";
+      liveFirework.style.setProperty("--origin-x", `${originX}px`);
+      liveFirework.style.setProperty("--origin-y", `${originY}px`);
+
+      const core = document.createElement("div");
+      core.className = "live-firework-core";
+      const avatar = document.createElement("img");
+      avatar.className = "live-firework-avatar";
+      avatar.src = avatarSrc;
+      avatar.alt = "Donor";
+      const gift = document.createElement("img");
+      gift.className = "live-firework-gift";
+      gift.src = giftSrc;
+      gift.alt = "Gift";
+      core.append(avatar, gift);
+      core.style.animationDuration = `${timing.flightMs}ms`;
+      liveFirework.appendChild(core);
+
+      const burstOffsets = [
+        [110, 0], [-110, 0], [0, 110], [0, -110],
+        [78, 78], [78, -78], [-78, 78], [-78, -78],
+      ];
+
+      const waves = [
+        { delay: timing.firstBurstDelayMs, mult: 0.72 },
+        { delay: timing.firstBurstDelayMs + timing.waveGapMs, mult: 0.92 },
+        { delay: timing.firstBurstDelayMs + timing.waveGapMs * 2, mult: 1.12 },
+      ];
+      waves.forEach((wave, waveIdx) => {
+        const particleSrc = waveIdx % 2 === 0 ? giftSrc : avatarSrc;
+        const angleJitter = (Math.random() * 360) * (Math.PI / 180);
+        const cosA = Math.cos(angleJitter);
+        const sinA = Math.sin(angleJitter);
+        burstOffsets.forEach(([x, y], idx) => {
+          const b = document.createElement("img");
+          b.className = "live-firework-burst";
+          b.src = particleSrc;
+          b.alt = "";
+          const rx = x * cosA - y * sinA;
+          const ry = x * sinA + y * cosA;
+          b.style.setProperty("--fx", `${Math.round(rx * wave.mult)}px`);
+          b.style.setProperty("--fy", `${Math.round(ry * wave.mult)}px`);
+          b.style.setProperty("--delay", `${wave.delay + (idx % 2) * 20}ms`);
+          b.style.animationDuration = `${timing.burstMs}ms`;
+          liveFirework.appendChild(b);
+        });
+      });
+
+      liveFirework.classList.add("show");
+      setTimeout(() => {
+        liveFirework.classList.add("center-hidden");
+      }, Math.max(0, timing.firstBurstDelayMs - 80));
+      liveFireworkTimer = setTimeout(() => {
+        liveFirework.classList.remove("show", "center-hidden");
+        liveFirework.innerHTML = "";
+        liveFireworkActive = false;
+        runNextLiveFirework();
+      }, timing.cleanupDelayMs);
+    }
+
+    function runNextLiveFirework() {
+      if (liveFireworkActive) return;
+      const next = liveFireworkQueue.shift();
+      if (!next) return;
+      liveFireworkActive = true;
+      showLiveGiftFirework(next.donorAvatar, next.giftIcon);
+    }
+
+    function enqueueLiveGiftFirework(donorAvatar, giftIcon) {
+      const now = Date.now();
+      if (!liveFireworkWindowStart || now - liveFireworkWindowStart >= 1000) {
+        liveFireworkWindowStart = now;
+        liveFireworkAcceptedInWindow = 0;
+      }
+      if (liveFireworkAcceptedInWindow >= liveFireworkMaxPerSecond) {
+        return;
+      }
+      liveFireworkAcceptedInWindow += 1;
+      if (liveFireworkQueue.length >= liveFireworkMaxQueue) {
+        liveFireworkQueue.shift();
+      }
+      liveFireworkQueue.push({ donorAvatar, giftIcon });
+      runNextLiveFirework();
+    }
+
+    function showSeatPointsRise(idx, delta) {
+      const slot = roomGrid.querySelectorAll(".slot")[idx];
+      if (!slot) return;
+      if (!Number.isFinite(delta) || delta === 0) return;
+      const wrap = slot.querySelector(".seat-points-wrap");
+      if (!wrap) return;
+      const pointsText = wrap.querySelector(".seat-points-text");
+      if (!pointsText) return;
+
+      /* Text already shows new value (set by applyRoomStyle). Derive old value. */
+      const newVal = pointsText.textContent;
+  const newNum = Number(pointsText.dataset.rawPoints ?? 0);
+      const oldNum = newNum - delta;
+  const oldVal = formatSeatPoints(oldNum);
+
+      /* Remove any existing roller */
+      const prev = wrap.querySelector(".seat-points-roller");
+      if (prev) { prev.remove(); pointsText.style.display = ""; }
+
+      /* Hide real text, build roller: old on top → new below */
+      pointsText.style.display = "none";
+      const roller = document.createElement("div");
+      roller.className = "seat-points-roller";
+      const oldSpan = document.createElement("span");
+      oldSpan.textContent = oldVal;
+      const newSpan = document.createElement("span");
+      newSpan.textContent = newVal;
+      roller.append(oldSpan, newSpan);
+      wrap.appendChild(roller);
+
+      /* Trigger roll animation */
+      void roller.offsetWidth;
+      roller.classList.add("rolling");
+      roller.addEventListener("animationend", () => {
+        pointsText.style.display = "";
+        roller.remove();
+      }, { once: true });
+    }
+
+    function positionGiftOverlay() {
+      // Gift overlay now fills the animation box, no dynamic positioning needed
+    }
+
+    function resetGiftVideoElement() {
+      if (!giftOverlay) return null;
+      const old = giftOverlay.querySelector("#giftVideo");
+      /* Reuse existing element to avoid exhausting browser video decoder slots */
+      if (old) {
+        try { old.pause(); old.removeAttribute("src"); old.load(); } catch (err) { /* ignore */ }
+        old.onended = null;
+        old.onerror = null;
+        old.oncanplaythrough = null;
+        old.classList.remove("use-canvas");
+        old.classList.remove("playing");
+        old.style.transition = "none";
+        old.style.opacity = "";
+        delete old._fadeStarted;
+        giftVideo = old;
+        return old;
+      }
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const next = document.createElement("video");
+      next.id = "giftVideo";
+      next.playsInline = true;
+      next.setAttribute("playsinline", "");
+      next.setAttribute("webkit-playsinline", "");
+      next.setAttribute("preload", "auto");
+      next.setAttribute("x-webkit-airplay", "deny");
+      next.setAttribute("disableRemotePlayback", "");
+      if (isIOS) {
+        next.muted = true;
+        next.autoplay = true;
+        next.setAttribute("muted", "");
+        next.setAttribute("autoplay", "");
+      }
+      giftOverlay.appendChild(next);
+      giftVideo = next;
+      return next;
+    }
+
+    function enqueueGiftAnimation(giftId) {
+      if (!giftId) return;
+      /* Safety: if giftIsPlaying has been stuck for >30s, force-reset */
+      if (giftIsPlaying && Date.now() - giftPlayStart > 30000) {
+        console.warn("enqueueGiftAnimation: giftIsPlaying stuck for >30s, force-resetting");
+        giftIsPlaying = false;
+        giftPlaySeq++;
+        if (giftHideTimer) { clearTimeout(giftHideTimer); giftHideTimer = null; }
+        try { if (giftOverlay) { giftOverlay.classList.remove("show", "lion-upgrade", "android-lion"); } } catch(e) {}
+      }
+      /* Cap the queue to prevent unbounded growth */
+      if (giftQueue.length >= 20) giftQueue.shift();
+      giftQueue.push(giftId);
+      if (!giftIsPlaying) {
+        const nextGift = giftQueue.shift();
+        if (nextGift) playGiftAnimation(nextGift);
+      }
+    }
+
+    function playGiftAnimation(giftId) {
+      const gift = giftLibrary[giftId];
+      if (!gift || !giftVideo || !giftOverlay) {
+        console.log("Gift animation failed: missing elements", { gift, giftVideo: !!giftVideo, giftOverlay: !!giftOverlay });
+        return;
+      }
+      const isAndroidDevice = /Android/i.test(navigator.userAgent);
+      const useEmbeddedGiftSound = giftId === "leonandlion" || giftId === "dragon" || giftId === "zeus" || giftId === "lion" || (isAndroidDevice && giftId === "tiktokuniverse");
+      const useDoubleHeightGift = giftId === "dragon" || giftId === "zeus" || giftId === "tiktokuniverse";
+      const dragonStartOffsetSec = giftId === "dragon" ? 0.10 : 0;
+
+      /* Check if this is a lion upgrade play */
+      const useLionUpgrade = (giftId === 'lion' && lionUpgradeBlobUrl && !isIPhoneDevice && !isAndroidDevice);
+      const skipSeparateGiftSound = (giftId === 'lion' && isAndroidDevice) || (giftId === 'tiktokuniverse' && isAndroidDevice);
+
+      let sources = gift.sources || (gift.animation ? [gift.animation] : []);
+
+      /* Android lion: use the bundled local webm as preferred source */
+      if (giftId === 'lion' && isAndroidDevice) {
+        sources = ["image/!Lion (29999).webm"];
+      }
+
+      /* Build ordered source list — upgrade blob first, then original fallbacks */
+      if (useLionUpgrade) {
+        sources = [lionUpgradeBlobUrl, ...sources]; // upgrade first, old as fallback
+      }
+      if (!useLionUpgrade && !isAndroidDevice && giftVideo && sources.length > 1) {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const preferMP4 = isIOS; // Only iOS uses MP4; macOS Safari can play WebM
+        const canPlay = (src) => {
+          if (src.endsWith(".webm")) {
+            if (preferMP4) return false; // iOS/Safari: skip WebM entirely, use MP4
+            return !!giftVideo.canPlayType("video/webm") || !!giftVideo.canPlayType("video/webm; codecs=\"vp9\"");
+          }
+          if (src.endsWith(".mp4")) {
+            return !!giftVideo.canPlayType("video/mp4");
+          }
+          return true;
+        };
+        const mp4Sources = sources.filter((s) => s.endsWith(".mp4") && canPlay(s));
+        const webmSources = sources.filter((s) => s.endsWith(".webm") && canPlay(s));
+        const other = sources.filter((s) => !s.endsWith(".webm") && !s.endsWith(".mp4") && canPlay(s));
+        const ordered = preferMP4
+          ? [...mp4Sources, ...other] // iOS/Safari: MP4 only, no WebM fallback
+          : [...webmSources, ...mp4Sources, ...other]; // Others: WebM first for alpha support
+        if (ordered.length) sources = ordered;
+      }
+      if (!sources.length) {
+        console.log("Gift animation failed: no sources");
+        return;
+      }
+
+      giftIsPlaying = true;
+      giftPlayStart = Date.now();
+      if (giftCooldownTimer) {
+        clearTimeout(giftCooldownTimer);
+        giftCooldownTimer = null;
+      }
+      const seq = ++giftPlaySeq;
+      console.log("Playing gift animation:", giftId, sources);
+
+      /* ---- Play gift sound separately (skip for Android lion — audio is in the video) ---- */
+      if (gift.sound && !skipSeparateGiftSound) {
+        try {
+          if (!_audioUnlocked) showSoundPrompt();
+          _giftAudioEl.src = resolveAssetUrl(gift.sound);
+          _giftAudioEl.currentTime = 0;
+          _giftAudioEl.volume = getAnimationAudioVolume();
+          _giftAudioEl.play().catch(() => {});
+        } catch (e) { /* ignore */ }
+      }
+
+      const finish = () => {
+        if (seq !== giftPlaySeq) return;
+        if (giftHideTimer) {
+          clearTimeout(giftHideTimer);
+          giftHideTimer = null;
+        }
+        giftOverlay.classList.remove("show");
+        giftOverlay.classList.remove("lion-upgrade");
+        giftOverlay.classList.remove("android-lion");
+        giftIsPlaying = false;
+        // Stop audio if still playing
+        try { _giftAudioEl.pause(); _giftAudioEl.currentTime = 0; } catch(e){}
+        /* Release video decoder resources immediately */
+        try {
+          if (giftVideo) {
+            giftVideo.classList.remove("playing");
+            giftVideo.style.transition = "none";
+            giftVideo.style.opacity = "";
+            delete giftVideo._fadeStarted;
+            giftVideo.pause();
+            giftVideo.removeAttribute("src");
+            giftVideo.load();
+          }
+        } catch(e){}
+        /* Remove leftover canvas */
+        const leftoverCanvas = giftOverlay.querySelector(".gift-canvas");
+        if (leftoverCanvas && leftoverCanvas.parentNode) leftoverCanvas.parentNode.removeChild(leftoverCanvas);
+        const nextGift = giftQueue.shift();
+        if (nextGift) {
+          setTimeout(() => playGiftAnimation(nextGift), 30);
+        }
+      };
+
+      if (giftHideTimer) {
+        clearTimeout(giftHideTimer);
+        giftHideTimer = null;
+      }
+      giftOverlay.classList.remove("show");
+      giftOverlay.classList.remove("lion-upgrade");
+      giftOverlay.classList.remove("android-lion");
+      // Force a style flush so re-adding the class retriggers reliably.
+      void giftOverlay.offsetWidth;
+
+      // Recreate the video element so re-playing the same file starts cleanly.
+      resetGiftVideoElement();
+
+      let idx = 0;
+      const tryNext = async () => {
+        if (seq !== giftPlaySeq) return;
+        if (idx >= sources.length) {
+          console.log("All sources failed");
+          finish();
+          return;
+        }
+        const src = sources[idx++];
+        console.log("Trying source:", src);
+        if (!giftVideo) { finish(); return; }
+        giftVideo.muted = useEmbeddedGiftSound;
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+        let freezeWatchdogId = null;
+
+        // Clear any previous event listeners by recreating the element
+        if (idx > 1) resetGiftVideoElement();
+
+        giftVideo.onended = () => {
+          if (seq !== giftPlaySeq) return;
+          console.log("Video ended");
+          if (freezeWatchdogId) clearInterval(freezeWatchdogId);
+          finish();
+        };
+        giftVideo.onerror = (e) => {
+          if (seq !== giftPlaySeq) return;
+          console.error("Video error:", e, src);
+          if (freezeWatchdogId) clearInterval(freezeWatchdogId);
+          tryNext();
+        };
+
+        positionGiftOverlay();
+        const isUpgSrc = useLionUpgrade && src === lionUpgradeBlobUrl;
+        const isAndroidLionSrc = isAndroidDevice && giftId === 'lion';
+        giftOverlay.classList.remove("lion-upgrade", "android-lion");
+        if (isAndroidLionSrc) {
+          giftOverlay.classList.add("android-lion");
+        } else if (isUpgSrc || useDoubleHeightGift) {
+          giftOverlay.classList.add("lion-upgrade");
+        }
+        giftOverlay.classList.add("show");
+
+        const startHideTimer = () => {
+          if (seq !== giftPlaySeq) return;
+          giftHideTimer = setTimeout(() => {
+            if (seq !== giftPlaySeq) return;
+            if (freezeWatchdogId) clearInterval(freezeWatchdogId);
+            finish();
+          }, 10000);
+        };
+
+        // Freeze watchdog
+        let lastWatchTime = -1;
+        let freezeChecks = 0;
+        freezeWatchdogId = setInterval(() => {
+          if (seq !== giftPlaySeq || !giftVideo) { if (freezeWatchdogId) clearInterval(freezeWatchdogId); return; }
+          if (giftVideo.ended) { if (freezeWatchdogId) clearInterval(freezeWatchdogId); return; }
+          // If paused unexpectedly, try to resume
+          if (giftVideo.paused && !giftVideo.ended && giftVideo.readyState >= 2) {
+            console.warn("Video paused unexpectedly, resuming");
+            giftVideo.play().catch(() => {});
+            return;
+          }
+          if (!giftVideo.paused && giftVideo.currentTime === lastWatchTime) {
+            freezeChecks++;
+            if (freezeChecks >= 4) {
+              console.warn("Video freeze detected, recreating");
+              if (freezeWatchdogId) clearInterval(freezeWatchdogId);
+              // Nuclear option: destroy and recreate
+              try {
+                resetGiftVideoElement();
+                if (!giftVideo) { finish(); return; }
+                giftVideo.muted = true;
+                giftVideo.playsInline = true;
+                const resolvedSrc = resolveAssetUrl(src);
+                const freshSrc = resolvedSrc.startsWith('blob:') ? resolvedSrc : resolvedSrc + (resolvedSrc.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+                giftVideo.src = freshSrc;
+                giftVideo.load();
+                giftVideo.onended = () => { if (seq === giftPlaySeq) finish(); };
+                giftVideo.onerror = () => { if (seq === giftPlaySeq) finish(); };
+                giftVideo.oncanplaythrough = () => {
+                  if (giftVideo) giftVideo.play().catch(() => { if (seq === giftPlaySeq) finish(); });
+                };
+                startHideTimer();
+              } catch (nuclearErr) {
+                console.error("Nuclear option failed:", nuclearErr);
+                if (seq === giftPlaySeq) finish();
+              }
+              return;
+            }
+          } else {
+            freezeChecks = 0;
+          }
+          lastWatchTime = giftVideo.currentTime;
+        }, 400);
+
+        // Set source and play
+        giftVideo.muted = true; // Always start muted
+
+        // iOS: use canvas rendering to remove black background from MP4
+        // Lion upgrade: use canvas only for fade-out (already has alpha)
+        // On Android, skip canvas for lion upgrade — native VP9 alpha is hardware-decoded
+        const isLionUpgSrc = useLionUpgrade && src === lionUpgradeBlobUrl;
+        const isDragonSrc = giftId === "dragon" && src.includes("dragonanimation.webm");
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const useCanvas = (isLionUpgSrc && !isAndroid) || isDragonSrc || (isIOS && (src.endsWith(".mp4") || src.includes(".mp4?"))) || src.includes("pegasus.mp4") || src.includes("thunderfalcon.mp4");
+        let giftCanvas = giftOverlay.querySelector(".gift-canvas");
+        let canvasRaf = null;
+
+        if (useCanvas) {
+          giftVideo.classList.add("use-canvas");
+          if (!giftCanvas) {
+            giftCanvas = document.createElement("canvas");
+            giftCanvas.className = "gift-canvas";
+            giftOverlay.appendChild(giftCanvas);
+          }
+          const ctx = giftCanvas.getContext("2d", { willReadFrequently: true });
+
+          const drawFrame = () => {
+            if (seq !== giftPlaySeq || !giftVideo || giftVideo.paused || giftVideo.ended) {
+              return;
+            }
+            const vw = giftVideo.videoWidth || 480;
+            const vh = giftVideo.videoHeight || 480;
+            if (giftCanvas.width !== vw) giftCanvas.width = vw;
+            if (giftCanvas.height !== vh) giftCanvas.height = vh;
+
+            if (isLionUpgSrc || isDragonSrc) {
+              /* ---- Lion upgrade / Dragon: already transparent, only do fade-out ---- */
+              ctx.clearRect(0, 0, vw, vh);
+              const duration = Number(giftVideo.duration || 0);
+              const timeLeft = duration > 0 ? duration - giftVideo.currentTime : Infinity;
+              if (timeLeft <= 1) {
+                ctx.globalAlpha = Math.max(0, Math.min(1, timeLeft / 1));
+              } else {
+                ctx.globalAlpha = 1;
+              }
+              ctx.drawImage(giftVideo, 0, 0, vw, vh);
+              ctx.globalAlpha = 1;
+              canvasRaf = requestAnimationFrame(drawFrame);
+              return;
+            }
+
+            ctx.drawImage(giftVideo, 0, 0, vw, vh);
+            const isLionMp4 = isIOS && src.includes("lionAnimation.mp4");
+            const isThunder = src.includes("thunderfalcon.mp4");
+            if (src.includes("pegasus.mp4") || isThunder || isLionMp4) {
+              const blurH = Math.floor(vh * 0.25);
+              ctx.filter = "blur(4px)";
+              ctx.drawImage(giftVideo, 0, 0, vw, blurH, 0, 0, vw, blurH);
+              ctx.filter = "none";
+            }
+            // Remove black pixels: make them transparent
+            const imageData = ctx.getImageData(0, 0, vw, vh);
+            const d = imageData.data;
+            const isPegasus = src.includes("pegasus.mp4");
+            const isLionKey = isLionMp4;
+            const threshold = isLionKey ? 45 : 30; // stronger key for lion mp4
+            if (isPegasus || isThunder) {
+              // Fade all pixels from 0% to 100% opacity across top 30%
+              const fadeAllH = Math.floor(vh * 0.3);
+              for (let y = 0; y < fadeAllH; y++) {
+                const fadeAll = y / Math.max(1, fadeAllH);
+                for (let x = 0; x < vw; x++) {
+                  const i = (y * vw + x) * 4;
+                  d[i+3] = Math.round(d[i+3] * fadeAll);
+                }
+              }
+            } else if (isLionKey) {
+              const topBlackH = Math.floor(vh * 0.2);
+              const fadeBlackH = Math.floor(vh * 0.4);
+              for (let y = 0; y < fadeBlackH; y++) {
+                const fade = y < topBlackH ? 0 : (y - topBlackH) / Math.max(1, fadeBlackH - topBlackH);
+                for (let x = 0; x < vw; x++) {
+                  const i = (y * vw + x) * 4;
+                  const brightness = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+                  if (brightness < threshold) {
+                    d[i+3] = Math.round(255 * fade);
+                  }
+                }
+              }
+
+              // Fade all pixels from 0% to 100% opacity across top 40%
+              const fadeAllH = Math.floor(vh * 0.4);
+              for (let y = 0; y < fadeAllH; y++) {
+                const fadeAll = y / Math.max(1, fadeAllH);
+                for (let x = 0; x < vw; x++) {
+                  const i = (y * vw + x) * 4;
+                  d[i+3] = Math.round(d[i+3] * fadeAll);
+                }
+              }
+            } else {
+              for (let i = 0; i < d.length; i += 4) {
+                const brightness = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+                if (brightness < threshold) {
+                  d[i+3] = 0; // fully transparent
+                } else if (brightness < threshold * 2) {
+                  // Smooth transition for near-black pixels
+                  d[i+3] = Math.round((brightness - threshold) / threshold * 255);
+                }
+              }
+            }
+
+            // Fade out during the last 1 second of the animation
+            const duration = Number(giftVideo.duration || 0);
+            if (duration > 0) {
+              const timeLeft = duration - giftVideo.currentTime;
+              if (timeLeft <= 1) {
+                const fadeOut = Math.max(0, Math.min(1, timeLeft / 1));
+                for (let i = 0; i < d.length; i += 4) {
+                  d[i+3] = Math.round(d[i+3] * fadeOut);
+                }
+              }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            canvasRaf = requestAnimationFrame(drawFrame);
+          };
+
+          // Start drawing when video plays
+          giftVideo.addEventListener("playing", () => {
+            drawFrame();
+          }, { once: true });
+
+          // Clean up canvas on end
+          const origOnEnded = giftVideo.onended;
+          giftVideo.onended = () => {
+            if (canvasRaf) cancelAnimationFrame(canvasRaf);
+            if (giftCanvas && giftCanvas.parentNode) giftCanvas.parentNode.removeChild(giftCanvas);
+            if (origOnEnded) origOnEnded();
+          };
         } else {
-            els.removeClass("edit-active").draggable("disable").resizable("disable");
-            $('#lion-overlay').hide().css('pointer-events', 'none');
+          // Remove canvas if present (non-iOS)
+          if (giftCanvas && giftCanvas.parentNode) giftCanvas.parentNode.removeChild(giftCanvas);
+          giftVideo.classList.remove("use-canvas");
+
+          // CSS fade-out for lion on Android (no canvas, just fade opacity)
+          if ((isLionUpgSrc || (isAndroid && giftId === 'lion')) && isAndroid) {
+            giftVideo.style.transition = "none";
+            giftVideo.style.opacity = "";
+            const fadeHandler = () => {
+              if (seq !== giftPlaySeq || !giftVideo) return;
+              const dur = Number(giftVideo.duration || 0);
+              if (dur > 0) {
+                const timeLeft = dur - giftVideo.currentTime;
+                if (timeLeft <= 1 && !giftVideo._fadeStarted) {
+                  giftVideo._fadeStarted = true;
+                  giftVideo.style.transition = "opacity 1s linear";
+                  giftVideo.style.opacity = "0";
+                }
+              }
+            };
+            giftVideo.addEventListener("timeupdate", fadeHandler);
+            const origEnd2 = giftVideo.onended;
+            giftVideo.onended = () => {
+              giftVideo.removeEventListener("timeupdate", fadeHandler);
+              giftVideo.style.transition = "none";
+              giftVideo.style.opacity = "";
+              delete giftVideo._fadeStarted;
+              if (origEnd2) origEnd2();
+            };
+          }
         }
+
+        /* Use cached blob URL if available, else fall back to server URL */
+        giftVideo.src = resolveAssetUrl(src);
+        giftVideo.load();
+
+        if (dragonStartOffsetSec > 0) {
+          giftVideo.addEventListener("loadedmetadata", () => {
+            try {
+              if (Number.isFinite(giftVideo.duration) && giftVideo.duration > dragonStartOffsetSec) {
+                giftVideo.currentTime = dragonStartOffsetSec;
+              }
+            } catch (err) { /* ignore seek errors */ }
+          }, { once: true });
+        }
+
+        // Wait for canplaythrough (most reliable on iOS)
+        let playAttempted = false;
+        const attemptPlay = () => {
+          if (playAttempted || seq !== giftPlaySeq) return;
+          playAttempted = true;
+          giftVideo.play().then(() => {
+            if (seq !== giftPlaySeq) return;
+            console.log("Video playing");
+            if (giftVideo) giftVideo.classList.add("playing");
+            /* Unmute for gifts with embedded audio */
+            if (useEmbeddedGiftSound && giftVideo) {
+              giftVideo.muted = false;
+              giftVideo.volume = getAnimationAudioVolume();
+            }
+            startHideTimer();
+          }).catch(() => {
+            // Stay muted if play fails
+            giftVideo.muted = true;
+            giftVideo.play().then(() => {
+              if (seq !== giftPlaySeq) return;
+              console.log("Video playing (muted)");
+              if (giftVideo) giftVideo.classList.add("playing");
+              startHideTimer();
+            }).catch((err2) => {
+              console.error("Play completely failed:", err2);
+              if (freezeWatchdogId) clearInterval(freezeWatchdogId);
+              tryNext();
+            });
+          });
+        };
+
+        giftVideo.addEventListener("canplaythrough", attemptPlay, { once: true });
+        // Also listen for canplay as fallback
+        giftVideo.addEventListener("canplay", () => {
+          setTimeout(attemptPlay, 50);
+        }, { once: true });
+        // Fallback timeout — if nothing happens in 4s, force play
+        setTimeout(attemptPlay, 4000);
+      };
+
+      tryNext();
+    }
+
+    function buildRoomSlots() {
+      roomGrid.innerHTML = "";
+      for (let i = 0; i < seatCount; i++) {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        const bg = document.createElement("div");
+        bg.className = "slot-bg";
+        const bgImg = document.createElement("img");
+        bgImg.className = "slot-bg-img";
+        bgImg.style.display = "none";
+        bg.appendChild(bgImg);
+        const pointsPill = document.createElement("div");
+        pointsPill.className = "seat-pill seat-pill-top";
+        pointsPill.style.display = "none";
+        const pointsIcon = document.createElement("img");
+        pointsIcon.className = "seat-pill-icon";
+        pointsIcon.src = "image/pointstar.png";
+        pointsIcon.alt = "";
+        const pointsWrap = document.createElement("span");
+        pointsWrap.className = "seat-points-wrap";
+        const pointsText = document.createElement("span");
+        pointsText.className = "seat-points-text";
+        pointsText.textContent = "0";
+        pointsWrap.appendChild(pointsText);
+        pointsPill.append(pointsIcon, pointsWrap);
+        const muteIcon = document.createElement("img");
+        muteIcon.className = "seat-mute";
+        muteIcon.src = "image/mutemic.png";
+        muteIcon.alt = "";
+        muteIcon.style.display = "none";
+        const lionIcon = document.createElement("img");
+        lionIcon.className = "seat-lion-icon";
+        lionIcon.src = "image/lionicon.png";
+        lionIcon.alt = "";
+        const plus = document.createElement("div");
+        plus.className = "plus";
+        plus.textContent = "+";
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = "Request";
+        const avatar = document.createElement("img");
+        avatar.className = "slot-avatar";
+        avatar.style.display = "none";
+        const namePill = document.createElement("div");
+        namePill.className = "seat-pill seat-pill-bottom";
+        namePill.style.display = "none";
+        const name = document.createElement("span");
+        name.className = "seat-name-text";
+        const plusCircle = document.createElement("span");
+        plusCircle.className = "seat-plus-circle";
+        const plusGlyph = document.createElement("span");
+        plusGlyph.className = "seat-plus-glyph";
+        plusGlyph.textContent = "+";
+        plusCircle.appendChild(plusGlyph);
+        namePill.append(name, plusCircle);
+        slot.appendChild(bg);
+        slot.appendChild(pointsPill);
+        slot.appendChild(muteIcon);
+        slot.appendChild(lionIcon);
+        slot.appendChild(plus);
+        slot.appendChild(label);
+        slot.appendChild(avatar);
+        slot.appendChild(namePill);
+        roomGrid.appendChild(slot);
+      }
+      applyRoomStyle();
+    }
+
+    function buildStyle2RoomUI() {
+      /* Add style2-active class to roomPanel to remove border */
+      if (roomPanel) roomPanel.classList.add("style2-active");
+      if (roomPanel) {
+        roomPanel.style.display = "flex";
+        roomPanel.style.flexDirection = "column";
+        roomPanel.style.overflow = "visible";
+      }
+      if (!roomPanel.querySelector(".style2-request-header")) {
+        const header = document.createElement("div");
+        header.className = "style2-request-header";
+        header.textContent = "Request";
+        roomPanel.insertBefore(header, roomGrid);
+      }
+    }
+
+    function clearStyle2RoomUI() {
+      if (roomPanel) roomPanel.classList.remove("style2-active");
+      if (roomPanel) {
+        roomPanel.style.display = "";
+        roomPanel.style.flexDirection = "";
+        roomPanel.style.overflow = "";
+      }
+      const header = roomPanel.querySelector(".style2-request-header");
+      if (header) header.remove();
+    }
+
+    function formatSeatName(raw) {
+      if (!raw) return "";
+      const trimmed = raw.trim();
+      if (trimmed.length >= 8) return trimmed.slice(0, 7) + "...";
+      return trimmed;
+    }
+
+    function formatSeatPoints(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return "0";
+      const pointsFormat = String(roomStyle?.pointsFormat || "compact").toLowerCase();
+      if (pointsFormat === "full") {
+        return Math.round(num).toLocaleString();
+      }
+      const abs = Math.abs(num);
+      if (abs >= 1_000_000) {
+        const scaled = num / 1_000_000;
+        const truncated = scaled >= 0
+          ? Math.floor(scaled * 10) / 10
+          : Math.ceil(scaled * 10) / 10;
+        return `${truncated.toFixed(1)}M`;
+      }
+      if (abs >= 1_000) {
+        const scaled = num / 1_000;
+        const truncated = scaled >= 0
+          ? Math.floor(scaled * 10) / 10
+          : Math.ceil(scaled * 10) / 10;
+        return `${truncated.toFixed(1)}K`;
+      }
+      return Math.round(num).toString();
+    }
+
+    const seatProfileCache = new Map();
+    const seatProfileInFlight = new Set();
+
+    function normalizeHandle(raw) {
+      if (!raw) return "";
+      return raw.trim().replace(/^@+/, "");
+    }
+
+    async function fetchSeatProfile(handle, idx) {
+      const clean = normalizeHandle(handle);
+      if (!clean || seatProfileInFlight.has(clean)) return;
+      seatProfileInFlight.add(clean);
+      try {
+        const res = await fetch(`/api/tiktok/profile/${encodeURIComponent(clean)}`);
+        if (!res.ok) return;
+        const body = await res.json();
+        const data = body?.data || body?.profile || body;
+        if (!data) return;
+        const avatar = data.avatar || data.avatarLarger || data.avatarThumb || "";
+        const name = data.nickname || data.displayName || data.username || clean;
+        seatProfileCache.set(clean, { avatar, name });
+        if (seats[idx]) {
+          seats[idx].avatar = avatar || seats[idx].avatar || "";
+          seats[idx].name = name || seats[idx].name || seats[idx].handle || "";
+          applyRoomStyle();
+        }
+      } catch (err) { /* ignore */ }
+      finally { seatProfileInFlight.delete(clean); }
+    }
+
+    function applyRoomStyle() {
+      const { slotHeight, colWidth, gap, bg1, bg2, blend, plusSize, labelSize, camWidth, camHeight, camRadius, speakingBorderRadius, camOffsetX, camOffsetY, closedCamWidth, closedCamHeight, closedCamOffsetX, closedCamOffsetY, roomWidth, roomHeight, roomRadius, roomOffsetX, roomOffsetY, animationWidth, animationHeight, animationOffsetX, animationOffsetY, roomWidth2 } = roomStyle;
+      _giftAudioEl.volume = getAnimationAudioVolume();
+      const bgOpacity = Math.min(1, Math.max(0, Number(roomStyle.bgOpacityPercent ?? 100) / 100));
+      const withAlpha = (color) => {
+        const c = String(color || '').trim();
+        const hex = c.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+        if (hex) {
+          let raw = hex[1];
+          if (raw.length === 3) raw = raw.split('').map((ch) => ch + ch).join('');
+          const r = parseInt(raw.slice(0, 2), 16);
+          const g = parseInt(raw.slice(2, 4), 16);
+          const b = parseInt(raw.slice(4, 6), 16);
+          return `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
+        }
+        const rgb = c.match(/^rgba?\(([^)]+)\)$/i);
+        if (rgb) {
+          const parts = rgb[1].split(',').map((p) => p.trim());
+          if (parts.length >= 3) {
+            const r = Number(parts[0]) || 0;
+            const g = Number(parts[1]) || 0;
+            const b = Number(parts[2]) || 0;
+            return `rgba(${r}, ${g}, ${b}, ${bgOpacity})`;
+          }
+        }
+        return c || `rgba(20, 23, 28, ${bgOpacity})`;
+      };
+      const requestStyle = String(roomStyle.requestTextStyle || "regular").toLowerCase();
+      const requestFontMap = {
+        regular: '"TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        medium: '"TikTok Sans Medium", "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        semibold: '"TikTok Sans SemiBold", "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        bold: '"TikTok Sans Bold", "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        condensed: '"TikTok Sans Condensed", "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+        expanded: '"TikTok Sans Expanded", "TikTok Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+      };
+      const requestFontFamily = requestFontMap[requestStyle] || requestFontMap.regular;
+
+      /* ── Seat Style 2: single-column, same slot design as style 1 ── */
+      if (seatStyleMode === 2) {
+        const style2ItemWidth = `calc((100% - ${gap}px) / 2)`;
+        roomGrid.style.display = "flex";
+        roomGrid.style.flexDirection = "column-reverse";
+        roomGrid.style.alignItems = "center";
+        roomGrid.style.justifyContent = "flex-start";
+        roomGrid.style.flex = "1 1 auto";
+        roomGrid.style.height = "";
+        roomGrid.style.overflow = "visible";
+        roomGrid.style.gridTemplateColumns = "";
+        roomGrid.style.gap = `${gap}px`;
+        buildStyle2RoomUI();
+        const style2Header = roomPanel ? roomPanel.querySelector(".style2-request-header") : null;
+        if (style2Header) {
+          style2Header.style.borderRadius = `${Math.max(0, Number(roomStyle.requestBoxRadius ?? 10) || 0)}px`;
+          style2Header.style.width = style2ItemWidth;
+          style2Header.style.alignSelf = "center";
+          style2Header.style.margin = `0 0 ${gap}px 0`;
+        }
+        roomGrid._s2scale = { style2ItemWidth };
+      } else {
+        clearStyle2RoomUI();
+        if (roomPanel) roomPanel.style.zoom = "";
+        const scale1 = Math.max(0.1, (roomStyle.roomScale1 ?? 100) / 100);
+        if (roomPanel) roomPanel.style.zoom = String(scale1);
+        roomGrid.style.display = "grid";
+        roomGrid.style.flexDirection = "";
+        roomGrid.style.alignItems = "";
+        roomGrid.style.flex = "";
+        roomGrid.style.height = "";
+        roomGrid.style.overflow = "";
+        roomGrid.style.gridTemplateColumns = `repeat(2, minmax(${colWidth}px, 1fr))`;
+        roomGrid.style.justifyContent = "";
+        roomGrid.style.gap = `${gap}px`;
+      }
+
+      const isDesktop = window.matchMedia && window.matchMedia("(min-width: 900px)").matches;
+      const desktopExtraX = isDesktop ? 700 : 0;
+      const slots = roomGrid.querySelectorAll(".slot");
+      const s2 = seatStyleMode === 2 ? (roomGrid._s2scale || {}) : {};
+      const occupiedCount2 = seatStyleMode === 2 ? seats.filter(s => s !== null).length : 0;
+      const mix = Math.min(1, Math.max(0, blend ?? 0.5));
+      const cut = Math.round((1 - mix) * 70);
+      const bg1Alpha = withAlpha(bg1);
+      const bg2Alpha = withAlpha(bg2);
+      const gradient = bg2
+        ? `linear-gradient(135deg, ${bg1Alpha} 0%, ${bg1Alpha} ${cut}%, ${bg2Alpha} 100%)`
+        : bg1Alpha;
+      slots.forEach((slot, idx) => {
+        slot.style.minHeight = `${slotHeight}px`;
+        slot.style.borderRadius = seatStyleMode === 2
+          ? `${Math.max(0, Number(roomStyle.roomRadius2) || 0)}px`
+          : `${Math.max(0, Number(roomRadius) || 0)}px`;
+        const seat = seats[idx];
+        slot.classList.toggle("occupied", !!seat);
+        if (seat && seat.avatar && !seatColors[idx]) {
+          computeSeatColor(idx, seat.avatar);
+        }
+        if (seat && !seat.avatar && seat.handle) {
+          const clean = normalizeHandle(seat.handle);
+          if (clean && seatProfileCache.has(clean)) {
+            const cached = seatProfileCache.get(clean);
+            if (cached?.avatar) seat.avatar = cached.avatar;
+            if (cached?.name) seat.name = cached.name;
+          } else if (clean) {
+            fetchSeatProfile(clean, idx);
+          }
+        }
+        const bgEl = slot.querySelector('.slot-bg');
+        const bgImg = bgEl ? bgEl.querySelector('img') : null;
+        const pointsPill = slot.querySelector(".seat-pill-top");
+        const pointsText = pointsPill ? pointsPill.querySelector(".seat-points-text") : null;
+        const namePill = slot.querySelector(".seat-pill-bottom");
+        const nameEl = namePill ? namePill.querySelector(".seat-name-text") : null;
+        const muteIcon = slot.querySelector(".seat-mute");
+        if (seat && seat.avatar) {
+          // Show blurred avatar image as background
+          slot.style.background = '#14171c';
+          if (bgImg) {
+            if (bgImg.src !== seat.avatar) bgImg.src = seat.avatar;
+            bgImg.style.display = 'block';
+          }
+        } else {
+          if (bgImg) {
+            bgImg.style.display = 'none';
+            if (bgImg.src) bgImg.src = '';
+          }
+          slot.style.background = gradient;
+        }
+        const plusEl = slot.querySelector(".plus");
+        const labelEl = slot.querySelector(".label");
+        const avatarEl = slot.querySelector(".slot-avatar");
+        if (seatStyleMode === 2) {
+          slot.style.width = s2.style2ItemWidth ?? `calc((100% - ${gap}px) / 2)`;
+        } else {
+          slot.style.width = "";
+        }
+        if (seat) {
+          slot.style.display = "";
+          seat.points = Number.isFinite(seat.points) ? seat.points : 0;
+          if (plusEl) plusEl.style.display = "none";
+          if (labelEl) labelEl.style.display = "none";
+          if (avatarEl) {
+            if (seat.avatar) {
+              if (avatarEl.src !== seat.avatar) avatarEl.src = seat.avatar;
+              if (avatarEl.alt !== (seat.handle || seat.name || "")) avatarEl.alt = seat.handle || seat.name || "seat";
+              avatarEl.style.display = "block";
+            } else {
+              if (avatarEl.src) avatarEl.src = "";
+              avatarEl.alt = "";
+              avatarEl.style.display = "none";
+            }
+          }
+          if (namePill && nameEl) {
+            nameEl.textContent = formatSeatName(seat.name || seat.handle || "");
+            namePill.style.display = "inline-flex";
+          }
+          if (pointsPill && pointsText) {
+            const seatPoints = Number(seat.points ?? 0);
+            pointsText.dataset.rawPoints = String(Number.isFinite(seatPoints) ? seatPoints : 0);
+            pointsText.textContent = formatSeatPoints(seatPoints);
+            pointsPill.style.display = "inline-flex";
+          }
+          if (muteIcon) muteIcon.style.display = "block";
+        } else {
+          if (seatStyleMode === 2) {
+            /* Style 2: show 1 placeholder slot only when NO seats occupied (0 people) */
+            if (occupiedCount2 === 0 && idx === 0) {
+              slot.style.display = "";
+              if (plusEl) {
+                plusEl.style.fontSize = `${plusSize}px`;
+                plusEl.style.display = "block";
+              }
+              if (labelEl) {
+                labelEl.style.fontSize = `${labelSize}px`;
+                labelEl.style.fontFamily = requestFontFamily;
+                labelEl.style.display = "block";
+              }
+            } else {
+              slot.style.display = "none";
+            }
+          } else {
+            slot.style.display = "";
+            if (plusEl) {
+              plusEl.style.fontSize = `${plusSize}px`;
+              plusEl.style.display = "block";
+            }
+            if (labelEl) {
+              labelEl.style.fontSize = `${labelSize}px`;
+              labelEl.style.fontFamily = requestFontFamily;
+              labelEl.style.display = "block";
+            }
+          }
+          if (avatarEl) {
+            avatarEl.src = "";
+            avatarEl.alt = "";
+            avatarEl.style.display = "none";
+          }
+          const lionIcon = slot.querySelector(".seat-lion-icon");
+          if (lionIcon) {
+            lionIcon.classList.remove("seat-lion-show");
+          }
+          if (namePill) namePill.style.display = "none";
+          if (pointsPill) pointsPill.style.display = "none";
+          if (muteIcon) muteIcon.style.display = "none";
+        }
+      });
+
+      if (videoWrap) {
+        const useClosed = !roomOpen || seatStyleMode === 2;
+        const nextCamWidth = useClosed ? (closedCamWidth ?? camWidth) : camWidth;
+        const nextCamHeight = useClosed ? (closedCamHeight ?? camHeight) : camHeight;
+        const nextCamOffsetX = useClosed ? (closedCamOffsetX ?? camOffsetX) : camOffsetX;
+        const nextCamOffsetY = useClosed ? (closedCamOffsetY ?? camOffsetY) : camOffsetY;
+        videoWrap.style.width = `${nextCamWidth}px`;
+        videoWrap.style.height = `${nextCamHeight}px`;
+        videoWrap.style.borderRadius = `${Math.max(0, Number(camRadius) || 0)}px`;
+        videoWrap.style.setProperty("--speaking-border-radius", `${Math.max(0, Number(speakingBorderRadius) || 0)}px`);
+        videoWrap.style.transform = `translate(${nextCamOffsetX + desktopExtraX}px, ${nextCamOffsetY}px)`;
+        resizeAiCanvas();
+        resizeSegCanvas();
+        if (window.VRMController && typeof window.VRMController.resize === "function") {
+          window.VRMController.resize();
+        }
+      }
+
+      if (roomPanel) {
+        const scale2 = seatStyleMode === 2 ? Math.max(0.1, (roomStyle.roomScale2 ?? 100) / 100) : 1;
+        if (seatStyleMode === 2) roomPanel.style.zoom = String(scale2);
+        const activeRoomW = seatStyleMode === 2 ? (roomWidth2 ?? roomWidth) : roomWidth;
+        roomPanel.style.border = "none";
+        roomPanel.style.outline = "none";
+        roomPanel.style.boxShadow = "none";
+        roomPanel.style.width = `${activeRoomW}px`;
+        roomPanel.style.height = seatStyleMode === 2 ? "auto" : `${roomHeight}px`;
+        const activeRoomOX = seatStyleMode === 2 ? (roomStyle.roomOffsetX2 ?? roomOffsetX) : roomOffsetX;
+        const activeRoomOY = seatStyleMode === 2 ? (roomStyle.roomOffsetY2 ?? roomOffsetY) : roomOffsetY;
+        /* Style 2: anchor panel from its BOTTOM edge so it grows upward.
+           zoom scales transform, so rendered bottom = (translateY + offsetHeight) * scale.
+           Solve for translateY so rendered bottom = activeRoomOY. */
+        const translateY = seatStyleMode === 2
+          ? (activeRoomOY / scale2 - (roomPanel.offsetHeight || 0))
+          : activeRoomOY;
+        roomPanel.style.transform = `translate(${activeRoomOX + desktopExtraX}px, ${translateY}px)`;
+        /* Style 2: room panel always in front of cam */
+        if (!editMoveEnabled) {
+          if (seatStyleMode === 2) {
+            roomPanel.style.zIndex = "3";
+            if (videoWrap) videoWrap.style.zIndex = "2";
+          } else {
+            roomPanel.style.zIndex = "";
+            if (videoWrap) videoWrap.style.zIndex = "";
+          }
+        }
+      }
+
+      if (animationBox) {
+        animationBox.style.width = `${animationWidth}px`;
+        animationBox.style.height = `${animationHeight}px`;
+        animationBox.style.transform = `translate(${animationOffsetX + desktopExtraX}px, ${animationOffsetY}px)`;
+        if (!editMoveEnabled) {
+          animationBox.style.zIndex = "30";
+        }
+      }
+
+      if (fireworkBox) {
+        const fireworkWidth = Number(roomStyle.fireworkWidth ?? 260) || 260;
+        const fireworkHeight = Number(roomStyle.fireworkHeight ?? 260) || 260;
+        const fireworkOffsetX = Number(roomStyle.fireworkOffsetX ?? 80) || 80;
+        const fireworkOffsetY = Number(roomStyle.fireworkOffsetY ?? 420) || 420;
+        fireworkBox.style.width = `${fireworkWidth}px`;
+        fireworkBox.style.height = `${fireworkHeight}px`;
+        fireworkBox.style.transform = `translate(${fireworkOffsetX + desktopExtraX}px, ${fireworkOffsetY}px)`;
+        if (!editMoveEnabled) {
+          fireworkBox.style.zIndex = "35";
+        }
+      }
+
+      positionGiftOverlay();
+      try {
+        localStorage.setItem(styleStoreKey, JSON.stringify({ ...roomStyle, _v: styleStoreVersion }));
+      } catch (err) { /* ignore */ }
+      debounceSaveLayout();
+    }
+
+    function broadcastCurrentStyle(origin = "host") {
+      const payload = { type: "remote-style", style: { ...roomStyle, _v: styleStoreVersion }, source: origin, ts: Date.now() };
+      if (channel) {
+        channel.postMessage(payload);
+      } else {
+        localStorage.setItem(fallbackKey, JSON.stringify(payload));
+      }
+    }
+
+    function updateRoomUI(open) {
+      roomOpen = open;
+      roomPanel.classList.toggle("show", open);
+      resetSeatGiftIcons();
+      applyRoomStyle();
+      positionGiftOverlay();
+    }
+
+    function canRequestUserMedia() {
+      return !!(window.isSecureContext && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    }
+
+    function stopMicMonitor() {
+      if (micRaf) {
+        cancelAnimationFrame(micRaf);
+        micRaf = null;
+      }
+      if (micSource) {
+        try { micSource.disconnect(); } catch (err) { /* ignore */ }
+        micSource = null;
+      }
+      micAnalyser = null;
+      micData = null;
+      micActive = false;
+    }
+
+    function setupMicMonitorFromStream(nextStream) {
+      if (!nextStream) return;
+      const audioTracks = typeof nextStream.getAudioTracks === "function" ? nextStream.getAudioTracks() : [];
+      if (!audioTracks.length) return;
+      stopMicMonitor();
+      micStream = nextStream;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!micCtx || micCtx.state === "closed") {
+        micCtx = new AudioCtx();
+      }
+      if (micCtx.state === "suspended") {
+        micCtx.resume().catch(() => {});
+      }
+      micSource = micCtx.createMediaStreamSource(nextStream);
+      micAnalyser = micCtx.createAnalyser();
+      micAnalyser.fftSize = 512;
+      micData = new Uint8Array(micAnalyser.fftSize);
+      micSource.connect(micAnalyser);
+      micActive = true;
+      const tick = () => {
+        if (!micAnalyser || !micData) return;
+        micAnalyser.getByteTimeDomainData(micData);
+        let sum = 0;
+        for (let i = 0; i < micData.length; i++) {
+          const v = (micData[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / micData.length);
+        const speaking = rms > 0.04;
+        if (videoWrap) videoWrap.classList.toggle("cam-speaking", speaking && speakingBorderVisible);
+        micRaf = requestAnimationFrame(tick);
+      };
+      tick();
+    }
+
+    async function startCamera() {
+      if (!canRequestUserMedia()) {
+        console.warn("Camera/mic requires a secure context. Open this page from localhost/HTTPS instead of 0.0.0.0.");
+        return;
+      }
+      try {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
+      } catch (err) { /* ignore */ }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: currentFacingMode } },
+          audio: true,
+        });
+        micStream = stream;
+        setupMicMonitorFromStream(stream);
+        videoEl.srcObject = stream;
+        const playPromise = videoEl.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } catch (err) {
+        console.warn("Camera/mic access failed:", err && err.name ? err.name : err);
+      }
+    }
+
+    function isStreamActive() {
+      if (!stream || typeof stream.getTracks !== "function") return false;
+      return stream.getTracks().some((track) => track.readyState === "live");
+    }
+
+    function startMicMonitor() {
+      if (micActive) return;
+      if (stream && typeof stream.getAudioTracks === "function" && stream.getAudioTracks().some((track) => track.readyState === "live")) {
+        setupMicMonitorFromStream(stream);
+        return;
+      }
+      if (!canRequestUserMedia()) return;
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        setupMicMonitorFromStream(stream);
+      }).catch(() => {
+        micActive = false;
+      });
+    }
+
+    function ensureMicStart() {
+      if (!micActive) startMicMonitor();
+      if (!isStreamActive()) startCamera();
+      if (micCtx && micCtx.state === "suspended") {
+        micCtx.resume().catch(() => {});
+      }
+    }
+    ["pointerdown", "touchstart", "click"].forEach((evt) => {
+      document.addEventListener(evt, ensureMicStart, { passive: true });
     });
-</script>
+
+    function toggleCameraFacing() {
+      currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+      try { localStorage.setItem(camFacingStoreKey, currentFacingMode); } catch (err) { /* ignore */ }
+      startCamera();
+    }
+
+    function setCamBackground(dataUrl) {
+      if (!camBgEl) return;
+      if (dataUrl) {
+        camBgEl.src = dataUrl;
+        camBgEl.style.display = "block";
+        // Stop camera stream only if VRM is NOT enabled
+        if (!camVrmEnabled && stream) {
+          try { stream.getTracks().forEach((track) => track.stop()); } catch (err) { /* ignore */ }
+          stream = null;
+          if (videoEl) videoEl.srcObject = null;
+        } else if (camVrmEnabled && !isStreamActive()) {
+          startCamera();
+        }
+      } else {
+        camBgEl.src = "";
+        camBgEl.style.display = "none";
+        if (!isStreamActive()) startCamera();
+      }
+      applyCamVisibility();
+      try { localStorage.setItem(camBgStoreKey, dataUrl || ""); } catch (err) { /* ignore */ }
+      saveCamBgToServer(dataUrl || "");
+    }
+
+    function setWebBackground(dataUrl, persist = true) {
+      const hasBg = typeof dataUrl === "string" && dataUrl.trim().length > 0;
+      if (hasBg) {
+        const safe = dataUrl.replace(/"/g, '\\"');
+        document.body.style.backgroundImage = `url("${safe}")`;
+      } else {
+        document.body.style.backgroundImage = "none";
+      }
+      if (persist) {
+        try { localStorage.setItem(webBgStoreKey, hasBg ? dataUrl : ""); } catch (err) { /* ignore */ }
+      }
+    }
+
+    function setAiAvatar(url) {
+      camAiAvatarUrl = url || "";
+      camAiAvatarReady = false;
+      camAiAvatarImage.onload = () => { camAiAvatarReady = true; };
+      camAiAvatarImage.onerror = () => { camAiAvatarReady = false; };
+      if (camAiAvatarUrl) {
+        camAiAvatarImage.src = camAiAvatarUrl;
+      } else {
+        camAiAvatarImage.src = "";
+      }
+    }
+
+    function resizeAiCanvas() {
+      if (!camAiCanvas || !videoWrap) return;
+      camAiCanvas.width = videoWrap.clientWidth;
+      camAiCanvas.height = videoWrap.clientHeight;
+    }
+
+    function resizeSegCanvas() {
+      if (!camSegCanvas || !videoWrap) return;
+      camSegCanvas.width = videoWrap.clientWidth;
+      camSegCanvas.height = videoWrap.clientHeight;
+    }
+
+    function drawAiAvatar(results) {
+      if (!camAiCanvas || !camAiCtx) return;
+      camAiCtx.clearRect(0, 0, camAiCanvas.width, camAiCanvas.height);
+      if (!camAiEnabled || !camAiAvatarReady) return;
+      const faces = results && results.multiFaceLandmarks;
+      if (!faces || !faces.length) return;
+      const landmarks = faces[0];
+      let minX = 1, minY = 1, maxX = 0, maxY = 0;
+      for (const p of landmarks) {
+        if (p.x < minX) minX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y > maxY) maxY = p.y;
+      }
+      const w = camAiCanvas.width;
+      const h = camAiCanvas.height;
+      const faceW = (maxX - minX) * w;
+      const faceH = (maxY - minY) * h;
+      const centerX = (minX + maxX) * 0.5 * w;
+      const centerY = (minY + maxY) * 0.5 * h;
+      const scale = 1.4;
+      const drawW = faceW * scale;
+      const drawH = faceH * scale;
+      const x = centerX - drawW / 2;
+      const y = centerY - drawH / 2;
+      camAiCtx.drawImage(camAiAvatarImage, x, y, drawW, drawH);
+    }
+
+    function initFaceMesh() {
+      if (faceMesh || typeof FaceMesh === "undefined") return;
+      faceMesh = new FaceMesh({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${file}`,
+      });
+      faceMesh.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      });
+      faceMesh.onResults(drawAiAvatar);
+    }
+
+    function initSelfieSegmentation() {
+      if (selfieSegmentation || typeof SelfieSegmentation === "undefined") return;
+      selfieSegmentation = new SelfieSegmentation({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/${file}`,
+      });
+      selfieSegmentation.setOptions({ modelSelection: 1 });
+      selfieSegmentation.onResults((results) => {
+        if (!camSegCtx || !camSegCanvas) return;
+        camSegCtx.clearRect(0, 0, camSegCanvas.width, camSegCanvas.height);
+        if (!camSegEnabled) return;
+        if (!results || !results.segmentationMask) return;
+
+        const w = camSegCanvas.width;
+        const h = camSegCanvas.height;
+
+        camSegCtx.save();
+        camSegCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+        camSegCtx.globalCompositeOperation = "source-in";
+        camSegCtx.drawImage(results.image, 0, 0, w, h);
+        camSegCtx.restore();
+
+        if (camBgEl && camBgEl.style.display !== "none" && camBgEl.src) {
+          camSegCtx.globalCompositeOperation = "destination-over";
+          camSegCtx.drawImage(camBgEl, 0, 0, w, h);
+          camSegCtx.globalCompositeOperation = "source-over";
+        }
+      });
+    }
+
+    async function aiFaceLoop() {
+      if (!camAiEnabled || !faceMesh || !videoEl) return;
+      if (videoEl.readyState >= 2) {
+        try {
+          await faceMesh.send({ image: videoEl });
+        } catch (err) {
+          // Ignore transient face mesh errors
+        }
+      }
+      camAiLoopId = requestAnimationFrame(aiFaceLoop);
+    }
+
+    async function segLoop() {
+      if (!camSegEnabled || !selfieSegmentation || !videoEl) return;
+      if (videoEl.readyState >= 2) {
+        try {
+          await selfieSegmentation.send({ image: videoEl });
+        } catch (err) {
+          // Ignore transient segmentation errors
+        }
+      }
+      camSegLoopId = requestAnimationFrame(segLoop);
+    }
+
+    function setAiFaceEnabled(next) {
+      camAiEnabled = !!next;
+      if (camAiEnabled && typeof FaceMesh === "undefined") {
+        camAiEnabled = false;
+        if (camAiFaceBtn) camAiFaceBtn.classList.remove("active");
+        console.warn("FaceMesh not available; check CDN access.");
+        return;
+      }
+      if (videoEl) videoEl.classList.toggle("cam-ai-face", camAiEnabled);
+      if (camAiCanvas) camAiCanvas.style.display = camAiEnabled ? "block" : "none";
+      if (camAiCtx && !camAiEnabled) camAiCtx.clearRect(0, 0, camAiCanvas.width, camAiCanvas.height);
+      if (camAiEnabled) {
+        initFaceMesh();
+        resizeAiCanvas();
+        if (!camAiLoopId) aiFaceLoop();
+      } else if (camAiLoopId) {
+        cancelAnimationFrame(camAiLoopId);
+        camAiLoopId = null;
+      }
+    }
+
+    function setSegEnabled(next) {
+      camSegEnabled = !!next;
+      if (camSegEnabled && typeof SelfieSegmentation === "undefined") {
+        camSegEnabled = false;
+        if (camSegBtn) camSegBtn.classList.remove("active");
+        console.warn("SelfieSegmentation not available; check CDN access.");
+        return;
+      }
+      if (camSegCanvas) camSegCanvas.style.display = camSegEnabled ? "block" : "none";
+      if (camSegCtx && !camSegEnabled) camSegCtx.clearRect(0, 0, camSegCanvas.width, camSegCanvas.height);
+      if (camSegEnabled) {
+        initSelfieSegmentation();
+        resizeSegCanvas();
+        if (!camSegLoopId) segLoop();
+      } else if (camSegLoopId) {
+        cancelAnimationFrame(camSegLoopId);
+        camSegLoopId = null;
+      }
+      applyCamVisibility();
+    }
+
+    function setVrmEnabled(next) {
+      camVrmEnabled = !!next;
+      if (camVrmCanvas) camVrmCanvas.style.display = camVrmEnabled ? "block" : "none";
+      if (window.VRMController && typeof window.VRMController.enable === "function") {
+        window.VRMController.enable(camVrmEnabled);
+      }
+      // If VRM is turned off while background is active, stop camera stream
+      if (!camVrmEnabled && camBgEl && camBgEl.style.display !== "none") {
+        if (stream) {
+          try { stream.getTracks().forEach((track) => track.stop()); } catch (err) { /* ignore */ }
+          stream = null;
+          if (videoEl) videoEl.srcObject = null;
+        }
+      } else if (camVrmEnabled && !isStreamActive()) {
+        startCamera();
+      }
+      applyCamVisibility();
+    }
+
+    function applyCamVisibility() {
+      const wrap = document.getElementById('videoWrap');
+      const hasBg = !!(camBgEl && camBgEl.style.display !== "none" && camBgEl.src);
+      if (!camVisible) {
+        videoEl.style.opacity = "0";
+        if (wrap) {
+          wrap.style.visibility = "";
+          wrap.classList.add("cam-hidden");
+          wrap.classList.remove("cam-speaking");
+        }
+        return;
+      }
+      if (wrap) {
+        wrap.style.visibility = "";
+        wrap.classList.remove("cam-hidden");
+      }
+      if (hasBg) {
+        videoEl.style.opacity = "0";
+        return;
+      }
+      if (camVrmEnabled || camSegEnabled) {
+        videoEl.style.opacity = "0";
+      } else {
+        videoEl.style.opacity = "1";
+      }
+    }
+
+    function setCamVisible(next) {
+      camVisible = !!next;
+      if (camVisible) {
+        if (!isStreamActive()) {
+          startCamera();
+        }
+      }
+      applyCamVisibility();
+    }
+
+    function applyCamToolsVisibility() {
+      if (camToolsEl) {
+        const show = !!(camToolsVisible || webBgToolsVisible);
+        camToolsEl.classList.toggle("show", show);
+        camToolsEl.setAttribute("aria-hidden", show ? "false" : "true");
+      }
+      if (camVrmPickBtn) camVrmPickBtn.style.display = camToolsVisible ? "" : "none";
+      if (camVrmClearBtn) camVrmClearBtn.style.display = camToolsVisible ? "" : "none";
+      if (camBgBtn) camBgBtn.style.display = camToolsVisible ? "" : "none";
+      if (camBgClearBtn) camBgClearBtn.style.display = camToolsVisible ? "" : "none";
+      if (webBgBtn) webBgBtn.style.display = webBgToolsVisible ? "" : "none";
+      if (webBgClearBtn) webBgClearBtn.style.display = webBgToolsVisible ? "" : "none";
+    }
+
+    function setCamToolsVisible(next) {
+      camToolsVisible = !!next;
+      applyCamToolsVisibility();
+    }
+
+    function setWebBgToolsVisible(next) {
+      webBgToolsVisible = !!next;
+      applyCamToolsVisibility();
+    }
+
+    // VRM is enabled by default
+    setVrmEnabled(true);
+
+    if (camVrmPickBtn && camVrmFile) {
+      camVrmPickBtn.addEventListener("click", () => {
+        camVrmFile.click();
+      });
+      camVrmFile.addEventListener("change", () => {
+        const file = camVrmFile.files && camVrmFile.files[0];
+        if (!file) return;
+        setVrmEnabled(true);
+        if (window.VRMController && typeof window.VRMController.loadFile === "function") {
+          window.VRMController.loadFile(file);
+        }
+        camVrmFile.value = "";
+      });
+    }
+
+    if (camVrmClearBtn) {
+      camVrmClearBtn.addEventListener("click", () => {
+        setVrmEnabled(false);
+      });
+    }
+
+    if (camBgBtn && camBgFile) {
+      camBgBtn.addEventListener("click", () => {
+        camBgFile.click();
+      });
+      camBgFile.addEventListener("change", () => {
+        const file = camBgFile.files && camBgFile.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            setCamBackground(reader.result);
+          }
+          camBgFile.value = "";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (camBgClearBtn) {
+      camBgClearBtn.addEventListener("click", () => {
+        setCamBackground("");
+      });
+    }
+
+    if (webBgBtn && webBgFile) {
+      webBgBtn.addEventListener("click", () => {
+        webBgFile.click();
+      });
+      webBgFile.addEventListener("change", () => {
+        const file = webBgFile.files && webBgFile.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            setWebBackground(reader.result);
+          }
+          webBgFile.value = "";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (webBgClearBtn) {
+      webBgClearBtn.addEventListener("click", () => {
+        setWebBackground("");
+      });
+    }
+
+
+    function loadSeats() {
+      try {
+        const saved = localStorage.getItem(seatsStoreKey);
+        if (!saved) return;
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === seatCount) {
+          seats = parsed;
+          seatColors = Array.from({ length: seatCount }, () => null);
+          seats.forEach((seat, idx) => {
+            if (seat && seat.avatar) computeSeatColor(idx, seat.avatar);
+          });
+        }
+      } catch (err) { /* ignore */ }
+    }
+
+    function sendMessage(payload) {
+      const message = { ...payload, ts: Date.now() };
+      if (channel) {
+        channel.postMessage(message);
+      } else {
+        localStorage.setItem(fallbackKey, JSON.stringify(message));
+      }
+      sendWs(message);
+    }
+
+    function handleIncoming(message) {
+      if (!message || typeof message !== "object") return;
+      if (!shouldProcessMessage(message)) return;
+      if (message.type === "remote-command") {
+        if (message.action === "open-room") updateRoomUI(true);
+        if (message.action === "close-room") updateRoomUI(false);
+        if (message.action === "start-camera") startCamera();
+        if (message.action === "set-transparent-bg") {
+          document.body.classList.toggle("transparent-bg", !!message.enabled);
+        }
+      } else if (message.type === "edit-mode" && typeof message.enabled === "boolean") {
+        editMoveEnabled = message.enabled;
+        if (animationBox) {
+          animationBox.style.borderStyle = message.enabled ? "dashed" : "none";
+        }
+        if (fireworkBox) {
+          fireworkBox.style.borderStyle = message.enabled ? "dashed" : "none";
+          fireworkBox.style.pointerEvents = message.enabled ? "auto" : "none";
+        }
+        if (editMoveEnabled) {
+          applyEditZOrder(fireworkBox || animationBox);
+        } else {
+          resetEditZOrder();
+        }
+      } else if (message.type === "save-layout") {
+        try {
+          localStorage.setItem(styleStoreKey, JSON.stringify({ ...roomStyle, _v: styleStoreVersion }));
+        } catch (err) { /* ignore */ }
+        saveLayoutToServer();
+        console.log("Layout saved to localStorage + server");
+      } else if (message.type === "remote-style" && message.style) {
+        const { _v, ...rest } = message.style;
+        roomStyle = { ...roomStyle, ...rest };
+        applyRoomStyle();
+      } else if (message.type === "remote-seats" && Array.isArray(message.seats)) {
+        const prevSeats = Array.isArray(seats) ? seats : [];
+        const incomingSeats = message.seats;
+        seats = incomingSeats.map((nextSeat, i) => {
+          const prevSeat = prevSeats[i] || null;
+          if (!nextSeat || !prevSeat) return nextSeat;
+          const prevHandle = normalizeHandle(prevSeat.handle || prevSeat.name || "");
+          const nextHandle = normalizeHandle(nextSeat.handle || nextSeat.name || "");
+          if (!prevHandle || !nextHandle || prevHandle !== nextHandle) return nextSeat;
+          const prevPoints = Number(prevSeat.points);
+          const nextPoints = Number(nextSeat.points);
+          const safePrev = Number.isFinite(prevPoints) ? prevPoints : 0;
+          const safeNext = Number.isFinite(nextPoints) ? nextPoints : 0;
+          // Keep the larger total so stale remote-seats packets cannot roll points back.
+          return { ...nextSeat, points: Math.max(safePrev, safeNext) };
+        });
+        seatColors = Array.from({ length: seatCount }, () => null);
+        for (let i = 0; i < seatCount; i++) {
+          const prev = prevSeats[i] || null;
+          const next = seats[i] || null;
+          const prevHandle = normalizeHandle(prev?.handle || prev?.name || "");
+          const nextHandle = normalizeHandle(next?.handle || next?.name || "");
+          if (!next || prevHandle !== nextHandle) {
+            clearSeatGiftIcon(i);
+          }
+        }
+        seats.forEach((seat, idx) => {
+          if (seat && seat.avatar) computeSeatColor(idx, seat.avatar);
+        });
+        try { localStorage.setItem(seatsStoreKey, JSON.stringify(seats)); } catch (err) { /* ignore */ }
+        applyRoomStyle();
+      } else if (message.type === "donate-gift" && message.giftId) {
+        const idx = Number(message.seatIndex);
+        if (Number.isInteger(idx) && idx >= 0 && idx < seatCount && seats[idx]) {
+          // Optional handle check (prevents wrong seat update if remote got out of sync)
+          if (!message.seatHandle || seats[idx].handle === message.seatHandle) {
+            const delta = Number(message.pointsDelta);
+            const current = Number(seats[idx].points);
+            const safeCurrent = Number.isFinite(current) ? current : 0;
+            const safeDelta = Number.isFinite(delta) ? delta : 0;
+            seats[idx].points = safeCurrent + safeDelta;
+            try { localStorage.setItem(seatsStoreKey, JSON.stringify(seats)); } catch (err) { /* ignore */ }
+            applyRoomStyle();
+            showSeatPointsRise(idx, safeDelta);
+            if (message.giftId === "lion") {
+              showLionSeatIcon(idx);
+            } else if (message.giftId === "leonandlion") {
+              showLionSeatIcon(idx, "image/leonandlionicon.png");
+            } else if (message.giftId === "zeus") {
+              showLionSeatIcon(idx, "image/zeusicon.png");
+            } else if (message.giftId === "dragon") {
+              showLionSeatIcon(idx, "image/dragonicon.png");
+            } else if (message.giftId === "pegasus") {
+              showLionSeatIcon(idx, "image/pegasusicon.png");
+            } else if (message.giftId === "thunderfalcon") {
+              showLionSeatIcon(idx, "image/thunderfalconicon.png");
+            } else if (message.giftId === "tiktokuniverse") {
+              showLionSeatIcon(idx, "image/tiktokuniverseicon.webp");
+            }
+          }
+        }
+        enqueueGiftAnimation(message.giftId);
+      } else if (message.type === "tiktok-live-gift") {
+        const donorAvatar = message?.donor?.avatar || "";
+        const giftIcon = message?.gift?.icon || "";
+        enqueueLiveGiftFirework(donorAvatar, giftIcon);
+      } else if (message.type === "play-gift" && message.giftId) {
+        enqueueGiftAnimation(message.giftId);
+      } else if (message.type === "cam-bg-updated" || message.type === "cam-bg") {
+        const bgUrl = (message.dataUrl != null) ? message.dataUrl : (localStorage.getItem(camBgStoreKey) || "");
+        setCamBackground(typeof bgUrl === "string" ? bgUrl : "");
+      } else if (message.type === "web-bg") {
+        const bgUrl = (message.dataUrl != null) ? message.dataUrl : "";
+        setWebBackground(typeof bgUrl === "string" ? bgUrl : "");
+      } else if (message.type === "toggle-camera") {
+        toggleCameraFacing();
+      } else if (message.type === "cam-tools" && typeof message.visible === "boolean") {
+        setCamToolsVisible(message.visible);
+      } else if (message.type === "web-bg-tools" && typeof message.visible === "boolean") {
+        setWebBgToolsVisible(message.visible);
+      } else if (message.type === "cam-visibility" && typeof message.visible === "boolean") {
+        setCamVisible(message.visible);
+      } else if (message.type === "host-text-visibility" && typeof message.visible === "boolean") {
+        const hp = document.getElementById("hostPill");
+        if (hp) hp.style.display = message.visible ? "" : "none";
+      } else if (message.type === "cam-name-text" && typeof message.text === "string") {
+        const cp = document.getElementById("camNamePill");
+        if (cp) cp.textContent = (message.text || "").trim() || "Host";
+      } else if (message.type === "cam-name-visibility" && typeof message.visible === "boolean") {
+        const cp = document.getElementById("camNamePill");
+        if (cp) cp.style.display = message.visible ? "" : "none";
+      } else if (message.type === "cam-name-capsule-visibility" && typeof message.visible === "boolean") {
+        const cp = document.getElementById("camNamePill");
+        if (cp) cp.classList.toggle("no-capsule", !message.visible);
+      } else if (message.type === "speaking-border-visibility" && typeof message.visible === "boolean") {
+        speakingBorderVisible = message.visible;
+        if (!speakingBorderVisible && videoWrap) videoWrap.classList.remove("cam-speaking");
+      } else if (message.type === "vrm-default") {
+        setVrmEnabled(true);
+        if (window.VRMController && typeof window.VRMController.load === "function") {
+          window.VRMController.load("vrm/vrm2.vrm");
+        }
+      } else if (message.type === "vrm-load" && typeof message.url === "string") {
+        setVrmEnabled(true);
+        if (window.VRMController && typeof window.VRMController.load === "function") {
+          window.VRMController.load(message.url);
+        }
+      } else if (message.type === "vrm-pose" && typeof message.strong === "boolean") {
+        setVrmEnabled(true);
+        if (window.VRMController && typeof window.VRMController.setPoseStrong === "function") {
+          window.VRMController.setPoseStrong(message.strong);
+        }
+      } else if (message.type === "vrm-pose-angle" && message.angle != null) {
+        setVrmEnabled(true);
+        if (window.VRMController && typeof window.VRMController.setPoseAngle === "function") {
+          window.VRMController.setPoseAngle(message.angle);
+        }
+      } else if (message.type === "animation-box-visibility" && message.visible !== undefined) {
+        if (animationBox) {
+          animationBox.style.borderStyle = (message.visible && editMoveEnabled) ? "dashed" : "none";
+        }
+        if (fireworkBox) {
+          fireworkBox.style.borderStyle = (message.visible && editMoveEnabled) ? "dashed" : "none";
+        }
+      } else if (message.type === "auto-gift-config" && message.config) {
+        autoGiftConfig = normalizeAutoGiftConfig(message.config);
+        updateAutoGiftLoop();
+      } else if (message.type === "seat-style" && message.style != null) {
+        const nextStyle = Number(message.style);
+        if (nextStyle === 1 || nextStyle === 2) {
+          seatStyleMode = nextStyle;
+          try { localStorage.setItem(seatStyleModeKey, seatStyleMode); } catch(e) {}
+          applyRoomStyle();
+          if (editMoveEnabled) {
+            applyEditZOrder(roomPanel || videoWrap || animationBox);
+          }
+          updateRoomUI(roomOpen);
+        }
+      }
+    }
+
+    function enableDragResize(el, keyPrefix) {
+      let mode = null;
+      let startX = 0;
+      let startY = 0;
+      let startW = 0;
+      let startH = 0;
+      let startOX = 0;
+      let startOY = 0;
+      let startScale = 100;
+      let pinchMode = false;
+      let pinchStartDist = 0;
+      let pinchStartW = 0;
+      let pinchStartH = 0;
+      let pinchStartOX = 0;
+      let pinchStartOY = 0;
+      const minSize = 160;
+      const minHeight = 120;
+
+      function resolveKeyPrefix() {
+        if (keyPrefix === "cam" && (!roomOpen || seatStyleMode === 2)) return "closedCam";
+        return keyPrefix;
+      }
+
+      /* For room + style 2, offsets use separate keys but width/height stay shared */
+      function oKey(suffix) {
+        if (keyPrefix === "room" && seatStyleMode === 2) {
+          if (suffix === "OffsetX") return "roomOffsetX2";
+          if (suffix === "OffsetY") return "roomOffsetY2";
+        }
+        return resolveKeyPrefix() + suffix;
+      }
+
+      function getTouchDistance(t1, t2) {
+        const dx = t2.clientX - t1.clientX;
+        const dy = t2.clientY - t1.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function onPointerMove(e) {
+        const activePrefix = resolveKeyPrefix();
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (mode === "move") {
+          roomStyle[oKey("OffsetX")] = startOX + dx;
+          roomStyle[oKey("OffsetY")] = startOY + dy;
+        } else if (mode === "resize") {
+          if (keyPrefix === "room") {
+            /* Room edge-drag → change scale % instead of pixel dimensions */
+            const widthDelta = (resizeRight ? dx : 0) + (resizeLeft ? -dx : 0);
+            const heightDelta = (resizeBottom ? dy : 0) + (resizeTop ? -dy : 0);
+            const domDelta = Math.abs(widthDelta) >= Math.abs(heightDelta) ? widthDelta : heightDelta;
+            const ratio = startW > 0 ? Math.max(0.05, (startW + domDelta) / startW) : 1;
+            const newScale = Math.min(300, Math.max(30, Math.round(startScale * ratio)));
+            if (seatStyleMode === 2) {
+              roomStyle.roomScale2 = newScale;
+            } else {
+              roomStyle.roomScale1 = newScale;
+            }
+            /* Keep the opposite edge anchored: compensate offset by the visual size change */
+            const scaleDelta = newScale - startScale;
+            if (resizeTop)  roomStyle[oKey("OffsetY")] = startOY - startH * scaleDelta / 100;
+            if (resizeLeft) roomStyle[oKey("OffsetX")] = startOX - startW * scaleDelta / 100;
+          } else {
+            const widthDelta = (resizeRight ? dx : 0) + (resizeLeft ? -dx : 0);
+            const heightDelta = (resizeBottom ? dy : 0) + (resizeTop ? -dy : 0);
+            const nextW = Math.max(minSize, startW + widthDelta);
+            const nextH = Math.max(minHeight, startH + heightDelta);
+            roomStyle[activePrefix + "Width"] = nextW;
+            roomStyle[activePrefix + "Height"] = nextH;
+            if (resizeLeft) roomStyle[oKey("OffsetX")] = startOX + dx;
+            if (resizeTop) roomStyle[oKey("OffsetY")] = startOY + dy;
+          }
+        }
+        applyRoomStyle();
+        broadcastCurrentStyle("host-drag");
+      }
+
+      function onPointerUp() {
+        mode = null;
+        window.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+      }
+
+      let resizeLeft = false;
+      let resizeRight = false;
+      let resizeTop = false;
+      let resizeBottom = false;
+
+      el.addEventListener("pointerdown", (e) => {
+        if (!editMoveEnabled) return;
+        const activePrefix = resolveKeyPrefix();
+        const rect = el.getBoundingClientRect();
+        const edge = 12;
+        resizeLeft = e.clientX <= rect.left + edge;
+        resizeRight = e.clientX >= rect.right - edge;
+        resizeTop = e.clientY <= rect.top + edge;
+        resizeBottom = e.clientY >= rect.bottom - edge;
+        const isResize = resizeLeft || resizeRight || resizeTop || resizeBottom;
+        mode = isResize ? "resize" : "move";
+        startX = e.clientX;
+        startY = e.clientY;
+        startW = roomStyle[activePrefix + "Width"] || el.offsetWidth;
+        startH = roomStyle[activePrefix + "Height"] || el.offsetHeight;
+        startOX = roomStyle[oKey("OffsetX")] || 0;
+        startOY = roomStyle[oKey("OffsetY")] || 0;
+        if (keyPrefix === "room") {
+          startScale = seatStyleMode === 2 ? (roomStyle.roomScale2 ?? 100) : (roomStyle.roomScale1 ?? 100);
+        }
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+      });
+
+      // Pinch-to-resize for touch devices
+      el.addEventListener("touchstart", (e) => {
+        if (!editMoveEnabled) return;
+        if (e.touches.length !== 2) return;
+        const activePrefix = resolveKeyPrefix();
+        pinchMode = true;
+        pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
+        pinchStartW = roomStyle[activePrefix + "Width"] || el.offsetWidth;
+        pinchStartH = roomStyle[activePrefix + "Height"] || el.offsetHeight;
+        pinchStartOX = roomStyle[oKey("OffsetX")] || 0;
+        pinchStartOY = roomStyle[oKey("OffsetY")] || 0;
+      }, { passive: true });
+
+      el.addEventListener("touchmove", (e) => {
+        if (!editMoveEnabled || !pinchMode) return;
+        if (e.touches.length !== 2) return;
+        const activePrefix = resolveKeyPrefix();
+        const dist = getTouchDistance(e.touches[0], e.touches[1]);
+        if (!pinchStartDist) return;
+        const scale = dist / pinchStartDist;
+        const nextW = Math.max(minSize, Math.round(pinchStartW * scale));
+        const nextH = Math.max(minHeight, Math.round(pinchStartH * scale));
+        roomStyle[activePrefix + "Width"] = nextW;
+        roomStyle[activePrefix + "Height"] = nextH;
+        roomStyle[oKey("OffsetX")] = pinchStartOX + Math.round((pinchStartW - nextW) / 2);
+        roomStyle[oKey("OffsetY")] = pinchStartOY + Math.round((pinchStartH - nextH) / 2);
+        applyRoomStyle();
+        broadcastCurrentStyle("host-pinch");
+      }, { passive: true });
+
+      el.addEventListener("touchend", () => {
+        pinchMode = false;
+      }, { passive: true });
+    }
+
+    function initChannel() {
+      if (channel) {
+        channel.addEventListener("message", (event) => handleIncoming(event.data));
+      } else {
+        window.addEventListener("storage", (event) => {
+          if (event.key === fallbackKey && event.newValue) {
+            try { handleIncoming(JSON.parse(event.newValue)); } catch (err) { /* ignore */ }
+          }
+        });
+      }
+      // Listen for direct localStorage writes (cam bg is stored directly by Mode 2)
+      window.addEventListener("storage", (event) => {
+        if (event.key === camBgStoreKey) {
+          setCamBackground(event.newValue || "");
+        }
+      });
+      sendMessage({ type: "hello" });
+    }
+
+    buildRoomSlots();
+    loadSeats();
+    // Load layout from server first, fall back to localStorage
+    (async function loadSavedLayout() {
+      let loaded = await loadLayoutFromServer();
+      if (!loaded) {
+        try {
+          const saved = localStorage.getItem(styleStoreKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === "object" && parsed._v === styleStoreVersion) {
+              const { _v, ...rest } = parsed;
+              roomStyle = { ...roomStyle, ...rest };
+            }
+          }
+        } catch (err) { /* ignore */ }
+      }
+      applyRoomStyle();
+      updateRoomUI(roomOpen);
+    })();
+    enableDragResize(videoWrap, "cam");
+    enableDragResize(roomPanel, "room");
+    enableDragResize(animationBox, "animation");
+    enableDragResize(fireworkBox, "firework");
+    initChannel();
+    // preloadGiftAssets is called after requireLogin succeeds
+    // After init, broadcast mode1's actual layout so mode2 sliders stay in sync
+    setTimeout(() => broadcastCurrentStyle("host-init"), 500);
+    try {
+      const savedFacing = localStorage.getItem(camFacingStoreKey);
+      if (savedFacing === "user" || savedFacing === "environment") currentFacingMode = savedFacing;
+    } catch (err) { /* ignore */ }
+    try {
+      if (!camBgLoadedFromServer) {
+        const savedBg = localStorage.getItem(camBgStoreKey);
+        if (savedBg) setCamBackground(savedBg);
+      }
+    } catch (err) { /* ignore */ }
+    try {
+      const savedWebBg = localStorage.getItem(webBgStoreKey);
+      if (savedWebBg === null) {
+        setWebBackground(defaultWebBgUrl, false);
+      } else {
+        setWebBackground(savedWebBg, false);
+      }
+    } catch (err) {
+      setWebBackground(defaultWebBgUrl, false);
+    }
+    startCamera();
+    startMicMonitor();
+    positionGiftOverlay();
+    window.addEventListener("resize", positionGiftOverlay);
+    window.addEventListener("resize", applyRoomStyle);
+    if (preferredMode === "host") {
+      // already in host mode
+    }
+  </script>
 </body>
 </html>
