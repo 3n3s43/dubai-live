@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>TikTok Remote - Pro v8.7.7 Broadcaster</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        /* Mevcut v8.7.6 stillerine ek olarak: */
+        .vrm-controls { background: #16171d; border: 1px solid #2a2d35; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+        .section-title { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 8px; font-weight: 800; }
+        .m-btn { flex: 1; background: #0d0d12; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; }
+        .m-btn.active { border-color: #00f2ea; color: #00f2ea; background: rgba(0, 242, 234, 0.1); }
+        .mode-row { display: flex; gap: 5px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="vrm-controls">
+        <div class="section-title">Yayın Düzeni (Layout)</div>
+        <div class="mode-row">
+            <button id="l-grid" class="m-btn active" onclick="setLayout('grid')">4x2 IZGARA</button>
+            <button id="l-list" class="m-btn" onclick="setLayout('list')">TEKLİ LİSTE</button>
+        </div>
+    </div>
+
+    <div class="vrm-controls">
+        <div class="section-title">Profesyonel Modlar</div>
+        <div class="mode-row">
+            <button class="m-btn" style="border-color: #ffd700;" onclick="sendVIP('lion')">🦁 MANUEL ASLAN</button>
+            <button id="btn-roll" class="m-btn active" onclick="toggleRoller()">PUAN ROLLER: AÇIK</button>
+        </div>
+    </div>
+
+    <script>
+    const socket = io({ transports: ['websocket', 'polling'] });
+    let roller = true;
+
+    function setLayout(m) {
+        socket.emit('layoutChange', { mode: m });
+        document.getElementById('l-grid').classList.toggle('active', m==='grid');
+        document.getElementById('l-list').classList.toggle('active', m==='list');
+    }
+
+    function sendVIP(type) {
+        socket.emit('vipEffect', { type: type });
+    }
+
+    function toggleRoller() {
+        roller = !roller;
+        socket.emit('toggleRoller', { active: roller });
+        const b = document.getElementById('btn-roll');
+        b.classList.toggle('active', roller);
+        b.innerText = roller ? "PUAN ROLLER: AÇIK" : "PUAN ROLLER: KAPALI";
+    }
+
+    // [v8.7.6'daki seat rendering ve socket dinleyicileri buraya eklenecek]
+</script>
+</body>
+</html>
