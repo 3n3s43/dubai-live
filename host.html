@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tiktok Live Host - Pro v8.7.0 (Professional Frame)</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <style>
+        html, body { margin: 0; padding: 0; background-color: #0b0c0f !important; font-family: 'Segoe UI', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
+        .movable { position: absolute; border: 2px solid transparent; box-sizing: border-box; }
+        .edit-active { border: 2px dashed #ff3b5c !important; cursor: move !important; z-index: 999 !important; background: rgba(255, 59, 92, 0.1) !important; }
+
+        #host-root {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            transform-origin: top left;
+            transform: scale(1);
+        }
+
+        #cam-container { width: 160px; height: 420px; top: 135px; left: 15px; background: #000; z-index: 10; overflow: hidden; }
+        video#user-cam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); pointer-events: none; }
+        #cam-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+        
+        .cam-picker {
+            position: absolute; bottom: 4px; left: 4px; padding: 2px 6px; font-size: 9px;
+            border-radius: 6px; border: 1px solid rgba(255,255,255,0.4);
+            background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; display: none; z-index: 50;
+        }
+        #cam-container.edit-active .cam-picker { display: inline-flex; align-items: center; gap: 3px; }
+
+        /* PROFESYONEL 8 KOLTUK ÇERÇEVESİ */
+        #request-container { width: 160px; height: 420px; top: 135px; left: 180px; z-index: 20; }
+        #guest-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: repeat(4, 1fr); 
+            gap: 1px; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.8); /* Çizgi rengi */
+        }
+        
+        .slot { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #14171c !important; /* Orijinal koyu profesyonel renk */
+            overflow: hidden; 
+        }
+
+        /* Üstten gelen hafif ışık efekti */
+        .slot::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 30%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.03), transparent);
+            pointer-events: none;
+        }
+
+        .avatar-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; z-index: 20; width: 100%; height: 100%; justify-content: center; }
+        .guest-avatar { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.2); object-fit: cover; z-index: 25; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .avatar-reflect { position: absolute; bottom: -8px; width: 100%; height: 50%; object-fit: cover; transform: scaleY(-1); opacity: 0.12; filter: blur(4px); z-index: 10; }
+
+        .score-pill { 
+            position: absolute; top: 4px; left: 4px; padding: 0 6px 0 2px; height: 14px; z-index: 40; 
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); border-radius: 50px;
+            display: flex; align-items: center; border: 0.5px solid rgba(255,255,255,0.1);
+        }
+
+        .lion-holder { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; z-index: 45; }
+        .lion-icon-small { width: 20px; height: 20px; background: url('kucuk.png') no-repeat center; background-size: contain; }
+
+        .flash-active { display: flex !important; animation: pureLionFlash 1.5s ease-in-out infinite alternate; }
+        @keyframes pureLionFlash { from { opacity: 0.2; transform: scale(0.8); } to { opacity: 1; transform: scale(1.1); } }
+
+        .star-box { width: 14px; height: 14px; background: url('star.png') no-repeat center; background-size: contain; margin-left: -2px; }
+        .score-counter-wrapper { height: 14px; overflow: hidden; display: flex; flex-direction: column; margin-left: 2px; }
+        .score-text { color: #fff; font-size: 9px; font-weight: 700; line-height: 14px; }
+        .animate-scroll { animation: scrollUp 0.18s forwards; }
+        @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
+
+        .bottom-ui-group { position: absolute; bottom: 5px; left: 4px; right: 4px; display: flex; align-items: center; justify-content: space-between; z-index: 35; }
+        .name-capsule { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); border-radius: 50px; display: flex; align-items: center; border: 0.5px solid rgba(255,255,255,0.1); padding: 0 6px; flex-grow: 1; max-width: 60px; height: 14px; justify-content: space-between; }
+        .guest-name { color: #fff; font-size: 8px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .plus-mini { color: #ff3b5c; font-size: 9px; font-weight: 900; margin-left: 2px; }
+        .mic-box { width: 14px; height: 14px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 50%; }
+        .mic-box svg { width: 10px; height: 10px; }
+
+        #lion-overlay { position: fixed; top: 10%; left: 10%; width: 80vw; height: 80vh; z-index: 100; display: none; pointer-events: none; background: transparent; }
+        #lion-video { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; filter: brightness(1.1) contrast(1.2); }
+        
+        .empty-state { display: flex; flex-direction: column; align-items: center; opacity: 0.6; }
+        .plus-icon { color: #8b93a6; font-size: 30px; font-weight: 200; }
+        .req-text { color: #8b93a6; font-size: 9px; font-weight: 700; text-transform: uppercase; margin-top: -5px; }
+    </style>
+</head>
+<body>
+    <div id="host-root">
+        <div id="cam-container" class="movable">
+            <img id="cam-image" alt="">
+            <button id="cam-image-picker" class="cam-picker">RESİM SEÇ</button>
+            <input type="file" id="camImageInput" accept="image/*" style="display:none">
+        </div>
+        <div id="request-container" class="movable">
+            <div id="guest-grid">
+                <script>
+                    for(let i=0; i<8; i++) {
+                        document.write(`
+                            <div class="slot" id="slot-${i}">
+                                <div class="empty-state">
+                                    <div class="plus-icon">+</div>
+                                    <div class="req-text">Boş</div>
+                                </div>
+                            </div>
+                        `);
+                    }
+                </script>
+            </div>
+        </div>
+        <div id="lion-overlay" class="movable"><video id="lion-video" playsinline></video></div>
+    </div>
+
+<script>
+    const socket = io({ transports: ['websocket', 'polling'] });
+    let seats = Array(8).fill(null);
+    let localScores = Array(8).fill(0);
+    let seatIntervals = Array(8).fill(null);
+    let camMode = 'camera';
+
+    function formatScore(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num;
+    }
+
+    function renderSeatCounter(index, animate = true) {
+        const wrapper = $(`#counter-${index}`);
+        if (!wrapper.length) return;
+        const newScoreFormatted = formatScore(localScores[index] || 0);
+        wrapper.find('.next-val').text(newScoreFormatted);
+        if (!animate) {
+            wrapper.find('.current-val').text(newScoreFormatted);
+            return;
+        }
+        wrapper.removeClass('animate-scroll');
+        void wrapper[0]?.offsetWidth;
+        wrapper.addClass('animate-scroll');
+        setTimeout(() => {
+            wrapper.removeClass('animate-scroll');
+            wrapper.find('.current-val').text(newScoreFormatted);
+        }, 180);
+    }
+
+    function startSeatCounter(index) {
+        if (seatIntervals[index]) clearInterval(seatIntervals[index]);
+        localScores[index] = Math.floor(285 + Math.random() * 215);
+        renderSeatCounter(index, false);
+        let elapsed = 0;
+        seatIntervals[index] = setInterval(() => {
+            localScores[index] += 1;
+            renderSeatCounter(index, true);
+            if (++elapsed >= 60) { clearInterval(seatIntervals[index]); seatIntervals[index] = null; }
+        }, 1000);
+    }
+
+    function updateUI() {
+        seats.forEach((seat, i) => {
+            const slot = $(`#slot-${i}`);
+            if (seat && (seat.username || seat.nickname)) {
+                if (slot.find('.guest-name').text() !== seat.username) {
+                    slot.html(`
+                        <div class="score-pill">
+                            <div class="star-box"></div>
+                            <div class="score-counter-wrapper" id="counter-${i}">
+                                <span class="score-text current-val">${formatScore(seat.score || 0)}</span>
+                                <span class="score-text next-val"></span>
+                            </div>
+                        </div>
+                        <div class="lion-holder" id="lion-holder-${i}"><div class="lion-icon-small"></div></div>
+                        <div class="avatar-wrapper">
+                            <img src="${seat.avatar}" class="guest-avatar">
+                            <img src="${seat.avatar}" class="avatar-reflect">
+                        </div>
+                        <div class="bottom-ui-group">
+                            <div class="name-capsule">
+                                <span class="guest-name">${seat.username}</span>
+                                <span class="plus-mini">+</span>
+                            </div>
+                            <div class="mic-box">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="white"/><path d="M19 10v1a7 7 0 0 1-14 0v-1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+                            </div>
+                        </div>
+                    `);
+                    startSeatCounter(i);
+                }
+            } else {
+                slot.html(`<div class="empty-state"><div class="plus-icon">+</div><div class="req-text">Boş</div></div>`);
+            }
+        });
+    }
+
+    // Socket ve Event Dinleyicileri (v8.7.0 mantığı)
+    socket.on('giftReceived', d => { 
+        if(seats[d.seatIndex]){ 
+            seats[d.seatIndex].score = (seats[d.seatIndex].score || 0) + parseInt(d.points);
+            localScores[d.seatIndex] += parseInt(d.points);
+            renderSeatCounter(d.seatIndex, true);
+            if(parseInt(d.points) >= 29999) triggerEffect('lion', d.seatIndex);
+        } 
+    });
+
+    function triggerEffect(type, index) {
+        if(index !== undefined) {
+            const holder = $(`#lion-holder-${index}`);
+            holder.addClass('flash-active');
+            setTimeout(() => holder.removeClass('flash-active'), 5000);
+        }
+        const v = document.getElementById('lion-video');
+        v.src = type + '.webm';
+        $('#lion-overlay').fadeIn(200);
+        v.play();
+        v.onended = () => $('#lion-overlay').fadeOut(400);
+    }
+
+    socket.on('fullSync', d => { if(d){ seats=d.seats; updateUI(); } });
+    socket.on('seatUpdate', d => { seats[d.seatIndex]=d.userData; updateUI(); });
+    socket.on('seatClear', d => { seats[d.seatIndex]=null; updateUI(); });
+
+    $(document).ready(() => {
+        // Kamera Başlatma
+        navigator.mediaDevices.getUserMedia({video:true}).then(s => {
+            const v = document.createElement('video'); 
+            v.id="user-cam"; v.srcObject=s; v.autoplay=true; v.playsInline=true;
+            document.getElementById('cam-container').appendChild(v);
+        });
+
+        // Tasarım Modu (Draggable/Resizable)
+        $('.movable').draggable({ 
+            stop: function() { 
+                localStorage.setItem('pos_' + this.id, JSON.stringify({top: $(this).css('top'), left: $(this).css('left'), width: $(this).css('width'), height: $(this).css('height')}));
+            } 
+        }).resizable();
+        
+        // Kayıtlı pozisyonları yükle
+        $('.movable').each(function() {
+            const saved = localStorage.getItem('pos_' + this.id);
+            if(saved) $(this).css(JSON.parse(saved));
+        });
+        
+        $('.movable').draggable("disable").resizable("disable");
+    });
+
+    socket.on('toggleEdit', d => {
+        const els = $('.movable');
+        if(d.active) {
+            els.addClass("edit-active").draggable("enable").resizable("enable");
+            $('#lion-overlay').show().css('pointer-events', 'auto');
+        } else {
+            els.removeClass("edit-active").draggable("disable").resizable("disable");
+            $('#lion-overlay').hide().css('pointer-events', 'none');
+        }
+    });
+</script>
+</body>
+</html>
